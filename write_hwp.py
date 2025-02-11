@@ -1,43 +1,66 @@
 
 import win32com.client
-
+from eroom import MetaData,generate_replace_dict, EroomManagerSchedule
+import os
 class HwpProcessor:
-    def __init__(self, default_file_path):
-        self.default_file_path = default_file_path
+
+    def __init__(self, meta_data):
+        """
+        HWP 문서 자동 처리를 담당하는 클래스
+
+        :param meta_data: MetaData 객체
+        """
+        self.meta_data : MetaData = meta_data
         self.hwp = self._initialize_hwp()
+
 
     def _initialize_hwp(self):
         """한글 오피스 객체를 초기화하고 보안 모듈을 등록"""
         try:
             hwp = win32com.client.gencache.EnsureDispatch("HWPFrame.HwpObject")
             hwp.RegisterModule("FilePathCheckDLL", "SecurityModule")  # 보안 경고 방지
+            
             return hwp
         except Exception as e:
             raise Exception(f"HWP 초기화 실패: {e}")
 
-    def open_file(self, file_name):
+    def open_file(self):
         """HWP 파일 열기"""
         try:
-            self.hwp.Open(self.default_file_path + file_name)
+            file_path = os.path.join(self.meta_data.default_file_path, self.meta_data.input_file)
+            self.hwp.Open(file_path)
         except Exception as e:
             raise Exception(f"파일을 열 수 없습니다: {e}")
 
-    def find_and_replace(self, find_text, replace_text):
-        """문서 내 텍스트 검색 및 바꾸기"""
-        self.hwp.HAction.Run("MoveTop")  # 문서 맨 앞으로 이동
-        self.hwp.HAction.GetDefault("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
-        
-        self.hwp.HParameterSet.HFindReplace.FindString = find_text
-        self.hwp.HParameterSet.HFindReplace.ReplaceString = replace_text
-        self.hwp.HParameterSet.HFindReplace.ReplaceMode = 1  # 모두 바꾸기
-        self.hwp.HParameterSet.HFindReplace.IgnoreMessage = 1  # 메시지 창 숨김
-        self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
-        self.hwp.HAction.Execute("AllReplace", self.hwp.HParameterSet.HFindReplace.HSet)
+    def find_and_replace(self, replace_dict):
+        """
+        문서 내 여러 개의 텍스트 검색 및 바꾸기
 
-    def save_file(self, output_file_name):
+        :param replace_dict: 키-값 형식의 치환 데이터 (예: {"%Name": "홍길동"})
+        """
+
+        for find_text, replace_text in replace_dict.items():
+            self.hwp.HAction.Run("MoveTop")
+            self.hwp.HAction.GetDefault("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+            
+            self.hwp.HParameterSet.HFindReplace.FindString = find_text
+            self.hwp.HParameterSet.HFindReplace.ReplaceString = replace_text
+            
+            self.hwp.HParameterSet.HFindReplace.ReplaceMode = 1  # 모두 바꾸기
+            self.hwp.HParameterSet.HFindReplace.IgnoreMessage = 1  # 메시지 창 숨김
+            
+            # self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+            self.hwp.HAction.Execute("AllReplace", self.hwp.HParameterSet.HFindReplace.HSet)
+            # 메시지 창 자동 확인 처리 추가
+
+
+
+
+    def save_file(self):
         """파일 저장"""
         try:
-            self.hwp.SaveAs(self.default_file_path + output_file_name)
+            output_path = os.path.join(self.meta_data.default_file_path, self.meta_data.output_file_name)
+            self.hwp.SaveAs(output_path)
         except Exception as e:
             raise Exception(f"파일 저장 실패: {e}")
 
@@ -46,19 +69,20 @@ class HwpProcessor:
         self.hwp.Quit()
 
 
-def modify_hwp_file(default_file_path, input_file_name, output_file_name, find_text, replace_text):
+def modify_hwp_file(meta_data:MetaData, replace_dict):
+    """HWP 파일을 열고 지정된 단어를 변경한 후 저장"""
+    processor = None
     try:
-        processor = HwpProcessor(default_file_path)
-        processor.open_file(input_file_name)
-        processor.find_and_replace(find_text, replace_text)
-        processor.save_file(output_file_name)
-        processor.close()
-        
-        print(f"파일이 성공적으로 저장되었습니다: {output_file_name}")
-    
+        processor = HwpProcessor(meta_data)
+        processor.open_file()
+        processor.find_and_replace(replace_dict)
+        processor.save_file()
+        print(f"파일이 성공적으로 저장되었습니다: {meta_data.output_file_name}")
     except Exception as e:
         print(f"오류 발생: {e}")
-
+    finally:
+        if processor:
+            processor.close()
 
 
 default_file_path = "C:/Users/pc/Desktop/project/"
@@ -66,7 +90,12 @@ default_file_path = "C:/Users/pc/Desktop/project/"
 manager_name = "박석진"
 input_file = "청년이룸출근부.hwp"  # 현재 경로에 있는 파일
 output_file_name = "청년이룸출근부{}.hwp".format("_"+ manager_name)
-find_text = "%Name"  # 예: "안녕하세요"
-replace_text = "박석진"  # 예: "반갑습니다"
 
-modify_hwp_file(default_file_path, input_file, output_file_name, find_text, replace_text)
+
+
+         
+if __name__ == '__main__':
+    meta_data = MetaData(default_file_path,input_file,output_file_name,"2025-02")
+    sc = EroomManagerSchedule(manager_name,"2025-02-10","2025-02-15")
+    replace_dict = generate_replace_dict(meta_data,sc)
+    modify_hwp_file(meta_data,replace_dict)
