@@ -54,7 +54,7 @@ class InputForm(QWidget):
         self.prev_month_button.clicked.connect(self.move_all_to_prev_month)
         form_layout.addWidget(self.prev_month_button)
 
-        self.submit_button = QPushButton('제출')
+        self.submit_button = QPushButton('입력')
         self.submit_button.clicked.connect(self.save_data)
         form_layout.addWidget(self.submit_button)
 
@@ -78,6 +78,10 @@ class InputForm(QWidget):
         self.holiday_submit_button = QPushButton('공휴일 추가')
         self.holiday_submit_button.clicked.connect(self.save_holiday)
         holiday_layout.addWidget(self.holiday_submit_button)
+
+        self.holiday_delete_button = QPushButton('공휴일 삭제')
+        self.holiday_delete_button.clicked.connect(self.delete_holiday)
+        holiday_layout.addWidget(self.holiday_delete_button)
 
         holiday_widget = QWidget()
         holiday_widget.setLayout(holiday_layout)
@@ -130,9 +134,21 @@ class InputForm(QWidget):
             QMessageBox.warning(self, "입력 오류", "이름을 입력하세요!")
             return
 
-        with open(self.file_path, mode='a', newline='', encoding='utf-8') as file:
+        updated_data = {}
+        if os.path.exists(self.file_path):
+            with open(self.file_path, mode='r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                headers = next(reader, None)
+                for row in reader:
+                    updated_data[row[0]] = row[1:]
+
+        updated_data[name] = [alternative_leave, saturday_work]
+        
+        with open(self.file_path, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow([name, alternative_leave, saturday_work])
+            writer.writerow(["이름", "대체 휴무 날짜", "토요일 근무 날짜"])
+            for key, value in updated_data.items():
+                writer.writerow([key] + value)
 
         QMessageBox.information(self, "저장 완료", "데이터가 성공적으로 저장되었습니다.")
         self.load_data()
@@ -229,7 +245,24 @@ class InputForm(QWidget):
             writer.writerows(updated_data)
 
         self.load_data()
+        
+    def delete_holiday(self):
+        selected_row = self.holiday_table.currentRow()
+        if selected_row == -1:
+            QMessageBox.warning(self, "삭제 오류", "삭제할 공휴일을 선택하세요!")
+            return
 
+        self.holiday_table.removeRow(selected_row)
+        
+        updated_holidays = []
+        for row in range(self.holiday_table.rowCount()):
+            updated_holidays.append(self.holiday_table.item(row, 0).text())
+        
+        with open(self.holiday_file_path, mode='w', encoding='utf-8') as file:
+            file.writelines([date + "\n" for date in updated_holidays])
+        
+        QMessageBox.information(self, "삭제 완료", "공휴일이 성공적으로 삭제되었습니다.")
+        self.load_holiday_data()
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
