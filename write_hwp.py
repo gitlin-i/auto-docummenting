@@ -1,4 +1,5 @@
 
+from time import sleep
 import win32com.client
 from eroom import MetaData,generate_replace_dict, EroomManagerSchedule
 import os
@@ -52,9 +53,41 @@ class HwpProcessor:
             # self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
             self.hwp.HAction.Execute("AllReplace", self.hwp.HParameterSet.HFindReplace.HSet)
             # 메시지 창 자동 확인 처리 추가
+    def find_text(self, search_text):
+        """특정 문자열을 문서에서 찾음"""
+        self.hwp.HAction.Run("MoveTop")
+        self.hwp.HAction.GetDefault("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+        self.hwp.HParameterSet.HFindReplace.FindString = search_text
+        self.hwp.HParameterSet.HFindReplace.Direction = 1  # 아래 방향 검색
+        return self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+    def select_cell(self):
+        self.hwp.HAction.Run("TableCellBlock")
+    def find_and_select_cell(self, search_text):
+        """특정 문자열을 찾아 해당 셀을 지정"""
+        if self.find_text(search_text):
+            self.select_cell()
+            return True
+        return False
 
+    def move_cell(self, direction, steps=1):
+        """현재 지정된 셀을 상하좌우로 주어진 횟수만큼 이동"""
+        directions = {
+            "up": "UpCell",
+            "down": "DownCell",
+            "left": "LeftCell",
+            "right": "RightCell"
+        }
+        if direction not in directions:
+            raise ValueError("Invalid direction. Use 'up', 'down', 'left', or 'right'.")
+        if not isinstance(steps, int) or steps < 1:
+            raise ValueError("Steps must be a positive integer.")
+        for _ in range(steps):
+            self.hwp.HAction.Run("Table"+directions[direction])
+        self.hwp.HAction.Run("TableCellBlock")  # 이동 후 현재 셀 다시 지정
 
-
+    def diagonal_cell(self):
+        """현재 지정된 셀에 대각선을 긋는 함수"""
+        self.hwp.HAction.Run("TableCellBorderDiagonalUp")
 
     def save_file(self):
         """파일 저장"""
@@ -67,6 +100,19 @@ class HwpProcessor:
     def close(self):
         """HWP 종료"""
         self.hwp.Quit()
+    def test_functions(self):
+        """테스트 함수: 특정 셀을 찾고 이동 및 대각선 처리 실행"""
+        test_text = "%일1"
+        if self.find_and_select_cell(test_text):
+            print(f"'{test_text}' 셀을 찾고 선택하였습니다.")
+            self.move_cell("right",3)
+
+            print("오른쪽으로 3 칸 이동하였습니다.")
+            self.hwp.HAction.Run("TableCellBorderDiagonalUp")
+            print("현재 칸을 대각선 처리하였습니다.")
+        else:
+            print(f"'{test_text}' 셀을 찾을 수 없습니다.")
+
 
 
 def modify_hwp_file(meta_data:MetaData, replace_dict):
@@ -75,6 +121,7 @@ def modify_hwp_file(meta_data:MetaData, replace_dict):
     try:
         processor = HwpProcessor(meta_data)
         processor.open_file()
+        processor.diagonal_cell()
         processor.find_and_replace(replace_dict)
         processor.save_file()
         print(f"파일이 성공적으로 저장되었습니다: {meta_data.output_file_name}")
@@ -90,8 +137,6 @@ default_file_path = "C:/Users/pc/Desktop/project/"
 manager_name = "박석진"
 input_file = "청년이룸출근부.hwp"  # 현재 경로에 있는 파일
 output_file_name = "청년이룸출근부{}.hwp".format("_"+ manager_name)
-
-
 
          
 if __name__ == '__main__':

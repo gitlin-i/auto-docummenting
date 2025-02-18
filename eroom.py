@@ -115,7 +115,9 @@ def generate_replace_dict(metadata:MetaData, eroom_manager_schedule:EroomManager
             "%Name": eroom_manager_schedule.name,  # 매니저 이름
             "%Year": str(year),  # 연도
             "%Month": str(month),  # 월 (숫자 형태)
-            "%Endday": str(last_day)  # 해당 월의 마지막 날
+            "%Endday": str(last_day),  # 해당 월의 마지막 날
+            "%일1" : "월/일",
+            "%일2": "월/일"
         }
     except Exception as e:
         raise ValueError(f"replace_dict 생성 중 오류 발생: {e}")
