@@ -91,7 +91,16 @@ class MetaData:
             "output_file_name": self.output_file_name,
             "target_date": self.target_date
         }
-
+    def get_weekends(self):
+        """지정된 월의 주말 날짜 목록을 반환"""
+        year, month = map(int, self.target_date.split('-'))
+        return {day for day in range(1, calendar.monthrange(year, month)[1] + 1)
+                if datetime(year, month, day).weekday() in [5, 6]}
+    def get_invalid_days(self):
+        """해당 월의 존재하지 않는 날짜 목록을 반환"""
+        year, month = map(int, self.target_date.split('-'))
+        last_day = calendar.monthrange(year, month)[1]
+        return {29, 30, 31} - set(range(1, last_day + 1))
 
 
 

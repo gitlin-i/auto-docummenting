@@ -1,8 +1,10 @@
-
 from time import sleep
 import win32com.client
-from eroom import MetaData,generate_replace_dict, EroomManagerSchedule
+from eroom import MetaData, generate_replace_dict, EroomManagerSchedule
 import os
+import calendar
+from datetime import datetime
+
 class HwpProcessor:
 
     def __init__(self, meta_data):
@@ -14,13 +16,11 @@ class HwpProcessor:
         self.meta_data : MetaData = meta_data
         self.hwp = self._initialize_hwp()
 
-
     def _initialize_hwp(self):
         """한글 오피스 객체를 초기화하고 보안 모듈을 등록"""
         try:
             hwp = win32com.client.gencache.EnsureDispatch("HWPFrame.HwpObject")
             hwp.RegisterModule("FilePathCheckDLL", "SecurityModule")  # 보안 경고 방지
-            
             return hwp
         except Exception as e:
             raise Exception(f"HWP 초기화 실패: {e}")
@@ -53,6 +53,7 @@ class HwpProcessor:
             # self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
             self.hwp.HAction.Execute("AllReplace", self.hwp.HParameterSet.HFindReplace.HSet)
             # 메시지 창 자동 확인 처리 추가
+
     def find_text(self, search_text):
         """특정 문자열을 문서에서 찾음"""
         self.hwp.HAction.Run("MoveTop")
@@ -60,8 +61,10 @@ class HwpProcessor:
         self.hwp.HParameterSet.HFindReplace.FindString = search_text
         self.hwp.HParameterSet.HFindReplace.Direction = 1  # 아래 방향 검색
         return self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+
     def select_cell(self):
         self.hwp.HAction.Run("TableCellBlock")
+
     def find_and_select_cell(self, search_text):
         """특정 문자열을 찾아 해당 셀을 지정"""
         if self.find_text(search_text):
@@ -72,8 +75,8 @@ class HwpProcessor:
     def move_cell(self, direction, steps=1):
         """현재 지정된 셀을 상하좌우로 주어진 횟수만큼 이동"""
         directions = {
-            "up": "UpCell",
-            "down": "DownCell",
+            "up": "UppperCell",
+            "down": "LowerCell",
             "left": "LeftCell",
             "right": "RightCell"
         }
@@ -82,13 +85,58 @@ class HwpProcessor:
         if not isinstance(steps, int) or steps < 1:
             raise ValueError("Steps must be a positive integer.")
         for _ in range(steps):
-            self.hwp.HAction.Run("Table"+directions[direction])
+            self.hwp.HAction.Run("Table" + directions[direction])
         self.hwp.HAction.Run("TableCellBlock")  # 이동 후 현재 셀 다시 지정
 
     def diagonal_cell(self):
         """현재 지정된 셀에 대각선을 긋는 함수"""
         self.hwp.HAction.Run("TableCellBorderDiagonalUp")
 
+    def apply_diagonal_to_weekend(self):
+        """현재 셀에서 5칸 오른쪽으로 이동하며 대각선 적용"""
+        for _ in range(5):
+            self.move_cell("right", 1)
+            self.diagonal_cell()
+        self.move_cell("left", 5)
+
+    def mark_weekends(self):
+        """주말을 찾아 해당 셀에 대각선 표시"""
+        weekends = self.meta_data.get_weekends()
+        for day_label in ["%일1", "%일2"]:
+            self.find_and_select_cell(day_label)
+            for _ in range(16):
+                self.move_cell("down", 1)
+                self.select_cell()
+                self.hwp.HAction.Run("TableCellInput")
+                self.hwp.InitScan(0,2)
+                text = self.hwp.GetText()
+                try:
+                    cell_date = int(text[1])
+                except ValueError:
+                    continue
+                if cell_date in weekends:
+                    self.apply_diagonal_to_weekend()
+
+                self.hwp.HAction.Run("MoveTop")
+    def remove_invalid_days(self):
+        """달의 말일을 기준으로 존재하지 않는 날짜를 제거"""
+        invalid_days = self.meta_data.get_invalid_days()
+        
+        for day_label in ["%일2"]:
+            self.find_and_select_cell(day_label)
+            for _ in range(16):
+                self.move_cell("down", 1)
+                self.select_cell()
+                self.hwp.HAction.Run("TableCellInput")
+                self.hwp.InitScan(0,2)
+                text = self.hwp.GetText()
+                try:
+                    cell_date = int(text[1])
+                except ValueError:
+                    continue
+                if cell_date in invalid_days:
+                    self.hwp.HAction.Run("Delete")
+            self.hwp.HAction.Run("MoveTop")
     def save_file(self):
         """파일 저장"""
         try:
@@ -100,28 +148,16 @@ class HwpProcessor:
     def close(self):
         """HWP 종료"""
         self.hwp.Quit()
-    def test_functions(self):
-        """테스트 함수: 특정 셀을 찾고 이동 및 대각선 처리 실행"""
-        test_text = "%일1"
-        if self.find_and_select_cell(test_text):
-            print(f"'{test_text}' 셀을 찾고 선택하였습니다.")
-            self.move_cell("right",3)
-
-            print("오른쪽으로 3 칸 이동하였습니다.")
-            self.hwp.HAction.Run("TableCellBorderDiagonalUp")
-            print("현재 칸을 대각선 처리하였습니다.")
-        else:
-            print(f"'{test_text}' 셀을 찾을 수 없습니다.")
 
 
-
-def modify_hwp_file(meta_data:MetaData, replace_dict):
+def modify_hwp_file(meta_data: MetaData, replace_dict):
     """HWP 파일을 열고 지정된 단어를 변경한 후 저장"""
     processor = None
     try:
         processor = HwpProcessor(meta_data)
         processor.open_file()
-        processor.diagonal_cell()
+        processor.mark_weekends()
+        processor.remove_invalid_days()
         processor.find_and_replace(replace_dict)
         processor.save_file()
         print(f"파일이 성공적으로 저장되었습니다: {meta_data.output_file_name}")
@@ -133,14 +169,12 @@ def modify_hwp_file(meta_data:MetaData, replace_dict):
 
 
 default_file_path = "C:/Users/pc/Desktop/project/"
-# 파일 경로 및 검색/교체 문자열 설정
 manager_name = "박석진"
-input_file = "청년이룸출근부.hwp"  # 현재 경로에 있는 파일
-output_file_name = "청년이룸출근부{}.hwp".format("_"+ manager_name)
+input_file = "청년이룸출근부.hwp"
+output_file_name = "청년이룸출근부{}.hwp".format("_" + manager_name)
 
-         
 if __name__ == '__main__':
-    meta_data = MetaData(default_file_path,input_file,output_file_name,"2025-02")
-    sc = EroomManagerSchedule(manager_name,"2025-02-10","2025-02-15")
-    replace_dict = generate_replace_dict(meta_data,sc)
-    modify_hwp_file(meta_data,replace_dict)
+    meta_data = MetaData(default_file_path, input_file, output_file_name, "2025-02")
+    sc = EroomManagerSchedule(manager_name, "2025-02-10", "2025-02-15")
+    replace_dict = generate_replace_dict(meta_data, sc)
+    modify_hwp_file(meta_data, replace_dict)
