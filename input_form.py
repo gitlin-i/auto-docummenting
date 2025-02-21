@@ -3,9 +3,12 @@ import csv
 import os
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout,
-    QDateEdit, QMessageBox, QHBoxLayout, QTableWidget, QTableWidgetItem, QSplitter
+    QDateEdit, QMessageBox, QHBoxLayout, QTableWidget, QTableWidgetItem, QSplitter, QComboBox
 )
 from PyQt5.QtCore import QDate, Qt
+
+from eroom import EroomManagerSchedule, MetaData
+from write_hwp import modify_hwp_file
 
 class InputForm(QWidget):
     def __init__(self):
@@ -17,16 +20,37 @@ class InputForm(QWidget):
     def initUI(self):
         self.setGeometry(100, 100, 800, 600)  # 창 크기 조정
         
-        main_layout = QHBoxLayout()
-
-        # Splitter for adjustable UI
+        main_layout = QVBoxLayout()
+        
+        # 목표 달 선택 UI
+        date_layout = QHBoxLayout()
+        self.year_label = QLabel("몇 년 몇 월 출근부인가요?: ")
+        self.year_combo = QComboBox()
+        self.month_combo = QComboBox()
+        
+        current_year = QDate.currentDate().year()
+        current_month = QDate.currentDate().month()
+        
+        for year in range(current_year - 5, current_year + 6):
+            self.year_combo.addItem(f"{year}년", year)
+        
+        for month in range(1, 13):
+            self.month_combo.addItem(f"{month}월", month)
+        
+        self.year_combo.setCurrentText(f"{current_year}년")
+        self.month_combo.setCurrentText(f"{current_month}월")
+        
+        date_layout.addWidget(self.year_label)
+        date_layout.addWidget(self.year_combo)
+        date_layout.addWidget(self.month_combo)
+        
+        main_layout.addLayout(date_layout)
+        
         splitter = QSplitter(Qt.Horizontal)
         left_splitter = QSplitter(Qt.Vertical)
         right_splitter = QSplitter(Qt.Vertical)
 
-        # 왼쪽: 입력 폼
         form_layout = QVBoxLayout()
-
         self.name_label = QLabel('이름:')
         self.name_input = QLineEdit(self)
         form_layout.addWidget(self.name_label)
@@ -61,6 +85,10 @@ class InputForm(QWidget):
         self.delete_button = QPushButton('삭제')
         self.delete_button.clicked.connect(self.delete_data)
         form_layout.addWidget(self.delete_button)
+
+        self.print_button = QPushButton("한글 파일 출력")
+        self.print_button.clicked.connect(self.print_to_hwp)
+        form_layout.addWidget(self.print_button)
 
         form_widget = QWidget()
         form_widget.setLayout(form_layout)
@@ -245,7 +273,7 @@ class InputForm(QWidget):
             writer.writerows(updated_data)
 
         self.load_data()
-        
+
     def delete_holiday(self):
         selected_row = self.holiday_table.currentRow()
         if selected_row == -1:
@@ -263,7 +291,36 @@ class InputForm(QWidget):
         
         QMessageBox.information(self, "삭제 완료", "공휴일이 성공적으로 삭제되었습니다.")
         self.load_holiday_data()
-        
+    
+    def print_to_hwp(self):
+        try:
+            current_year = self.year_combo.currentData()
+            current_month = self.month_combo.currentData()
+            
+            if not os.path.exists(self.file_path):
+                QMessageBox.warning(self, "오류", "출력할 데이터가 없습니다.")
+                return
+            
+            with open(self.file_path, mode='r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                data = list(reader)
+            
+            for row in data:
+                ems = EroomManagerSchedule(row["이름"],row["대체 휴무 날짜"],row["토요일 근무 날짜"])
+                
+                meta_data = MetaData(
+                    default_file_path=os.getcwd(),
+                    input_file="청년이룸출근부.hwp",
+                    output_file_name=f"청년이룸출근부_{current_year}년_{current_month}월_{ems.name}.hwp",
+                    target_date=f"{current_year}-{str(current_month).zfill(2)}"
+                )
+                
+                modify_hwp_file(meta_data, ems)
+            
+            QMessageBox.information(self, "출력 완료", "한글 파일 출력이 완료되었습니다.")
+        except Exception as e:
+            QMessageBox.warning(self, "오류", f"오류 발생: {str(e)}")
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = InputForm()

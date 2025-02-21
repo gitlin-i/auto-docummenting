@@ -1,9 +1,6 @@
-from time import sleep
 import win32com.client
 from eroom import MetaData, generate_replace_dict, EroomManagerSchedule
 import os
-import calendar
-from datetime import datetime
 
 class HwpProcessor:
 
@@ -99,9 +96,9 @@ class HwpProcessor:
             self.diagonal_cell()
         self.move_cell("left", 5)
 
-    def mark_weekends(self):
+    def mark_day_off(self, weekends: set):
         """주말을 찾아 해당 셀에 대각선 표시"""
-        weekends = self.meta_data.get_weekends()
+
         for day_label in ["%일1", "%일2"]:
             self.find_and_select_cell(day_label)
             for _ in range(16):
@@ -135,8 +132,8 @@ class HwpProcessor:
                 except ValueError:
                     continue
                 if cell_date in invalid_days:
-                    self.hwp.HAction.Run("Delete")
-            self.hwp.HAction.Run("MoveTop")
+                    self.hwp.HAction.Run("TableDeleteCell")
+            # self.hwp.HAction.Run("MoveTop")
     def save_file(self):
         """파일 저장"""
         try:
@@ -150,13 +147,14 @@ class HwpProcessor:
         self.hwp.Quit()
 
 
-def modify_hwp_file(meta_data: MetaData, replace_dict):
+def modify_hwp_file(meta_data: MetaData, sc:EroomManagerSchedule):
     """HWP 파일을 열고 지정된 단어를 변경한 후 저장"""
     processor = None
+    replace_dict = generate_replace_dict(meta_data, sc)
     try:
         processor = HwpProcessor(meta_data)
         processor.open_file()
-        processor.mark_weekends()
+        processor.mark_day_off(sc.get_day_off(meta_data))
         processor.remove_invalid_days()
         processor.find_and_replace(replace_dict)
         processor.save_file()
@@ -167,14 +165,3 @@ def modify_hwp_file(meta_data: MetaData, replace_dict):
         if processor:
             processor.close()
 
-
-default_file_path = "C:/Users/pc/Desktop/project/"
-manager_name = "박석진"
-input_file = "청년이룸출근부.hwp"
-output_file_name = "청년이룸출근부{}.hwp".format("_" + manager_name)
-
-if __name__ == '__main__':
-    meta_data = MetaData(default_file_path, input_file, output_file_name, "2025-02")
-    sc = EroomManagerSchedule(manager_name, "2025-02-10", "2025-02-15")
-    replace_dict = generate_replace_dict(meta_data, sc)
-    modify_hwp_file(meta_data, replace_dict)

@@ -2,55 +2,6 @@
 from datetime import datetime
 import os
 import calendar
-class EroomManagerSchedule:
-    def __init__(self, name, substitute_holiday, saturday_workday):
-        """
-        청년이룸 매니저의 근무 일정을 관리하는 클래스
-        
-        :param name: 매니저 이름
-        :param substitute_holiday: 대체휴무일 (YYYY-MM-DD 형식의 문자열)
-        :param saturday_workday: 토요일 근무일 (YYYY-MM-DD 형식의 문자열)
-        """
-        self.name = name  # 매니저 이름
-        self.substitute_holiday = substitute_holiday  # 대체휴무일
-        self.saturday_workday = saturday_workday  # 토요일 근무일
-
-    def __repr__(self):
-        return f"EroomManagerSchedule(name={self.name}, substitute_holiday={self.substitute_holiday}, saturday_workday={self.saturday_workday})"
-    
-    def to_dict(self):
-        """객체를 딕셔너리 형태로 변환"""
-        return {
-            "name": self.name,
-            "substitute_holiday": self.substitute_holiday,
-            "saturday_workday": self.saturday_workday
-        }
-
-
-
-class PublicHoliday:
-    def __init__(self, date):
-        """
-        공휴일 정보를 저장하는 클래스
-
-        :param date: 공휴일 날짜 (YYYY-MM-DD 형식의 문자열)
-        """
-        self.date = self._validate_date(date)  # 날짜 검증 후 저장
-
-    def _validate_date(self, date):
-        """YYYY-MM-DD 형식의 날짜인지 검증"""
-        try:
-            return datetime.strptime(date, "%Y-%m-%d").date()
-        except ValueError:
-            raise ValueError("날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식이어야 합니다.")
-
-    def __repr__(self):
-        return f"PublicHoliday(date={self.date})"
-
-    def to_dict(self):
-        """객체를 딕셔너리 형태로 변환"""
-        return {"date": self.date.strftime("%Y-%m-%d")}
-    
 class MetaData:
     def __init__(self, default_file_path, input_file, output_file_name, target_date):
         """
@@ -101,7 +52,73 @@ class MetaData:
         year, month = map(int, self.target_date.split('-'))
         last_day = calendar.monthrange(year, month)[1]
         return {29, 30, 31} - set(range(1, last_day + 1))
+    
 
+
+class EroomManagerSchedule:
+    def __init__(self, name, substitute_holiday, saturday_workday):
+        """
+        청년이룸 매니저의 근무 일정을 관리하는 클래스
+        
+        :param name: 매니저 이름
+        :param substitute_holiday: 대체휴무일 (YYYY-MM-DD 형식의 문자열)
+        :param saturday_workday: 토요일 근무일 (YYYY-MM-DD 형식의 문자열)
+        """
+        self.name = name  # 매니저 이름
+        self.substitute_holiday = substitute_holiday  # 대체휴무일
+        self.saturday_workday = saturday_workday  # 토요일 근무일
+
+    def __repr__(self):
+        return f"EroomManagerSchedule(name={self.name}, substitute_holiday={self.substitute_holiday}, saturday_workday={self.saturday_workday})"
+    
+    def to_dict(self):
+        """객체를 딕셔너리 형태로 변환"""
+        return {
+            "name": self.name,
+            "substitute_holiday": self.substitute_holiday,
+            "saturday_workday": self.saturday_workday
+        }
+    def get_day_off(self, meta_data: MetaData):
+        weekends = meta_data.get_weekends()
+        
+        # target_date의 연-월 정보 추출
+        target_year_month = meta_data.target_date[:7]
+        
+        # 날짜에서 일(day) 부분만 추출하여 정수 변환 (년-월 일치 여부 확인)
+        if self.saturday_workday.startswith(target_year_month):
+            saturday_workday_day = int(self.saturday_workday.split('-')[-1])
+            weekends.discard(saturday_workday_day)
+        
+        if self.substitute_holiday.startswith(target_year_month):
+            substitute_holiday_day = int(self.substitute_holiday.split('-')[-1])
+            weekends.add(substitute_holiday_day)
+        
+        return weekends
+
+
+class PublicHoliday:
+    def __init__(self, date):
+        """
+        공휴일 정보를 저장하는 클래스
+
+        :param date: 공휴일 날짜 (YYYY-MM-DD 형식의 문자열)
+        """
+        self.date = self._validate_date(date)  # 날짜 검증 후 저장
+
+    def _validate_date(self, date):
+        """YYYY-MM-DD 형식의 날짜인지 검증"""
+        try:
+            return datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError("날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식이어야 합니다.")
+
+    def __repr__(self):
+        return f"PublicHoliday(date={self.date})"
+
+    def to_dict(self):
+        """객체를 딕셔너리 형태로 변환"""
+        return {"date": self.date.strftime("%Y-%m-%d")}
+    
 
 
 def generate_replace_dict(metadata:MetaData, eroom_manager_schedule:EroomManagerSchedule):
