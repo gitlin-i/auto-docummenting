@@ -88,37 +88,16 @@ class EroomManagerSchedule:
         if self.saturday_workday.startswith(target_year_month):
             saturday_workday_day = int(self.saturday_workday.split('-')[-1])
             weekends.discard(saturday_workday_day)
+            # 토요일 근무일은 주말이 아니므로 제외
         
         if self.substitute_holiday.startswith(target_year_month):
             substitute_holiday_day = int(self.substitute_holiday.split('-')[-1])
             weekends.add(substitute_holiday_day)
+            # 대체휴무일은 주말(쉬는날)이므로 추가
         
         return weekends
 
 
-class PublicHoliday:
-    def __init__(self, date):
-        """
-        공휴일 정보를 저장하는 클래스
-
-        :param date: 공휴일 날짜 (YYYY-MM-DD 형식의 문자열)
-        """
-        self.date = self._validate_date(date)  # 날짜 검증 후 저장
-
-    def _validate_date(self, date):
-        """YYYY-MM-DD 형식의 날짜인지 검증"""
-        try:
-            return datetime.strptime(date, "%Y-%m-%d").date()
-        except ValueError:
-            raise ValueError("날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식이어야 합니다.")
-
-    def __repr__(self):
-        return f"PublicHoliday(date={self.date})"
-
-    def to_dict(self):
-        """객체를 딕셔너리 형태로 변환"""
-        return {"date": self.date.strftime("%Y-%m-%d")}
-    
 
 
 def generate_replace_dict(metadata:MetaData, eroom_manager_schedule:EroomManagerSchedule):
