@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QDate, Qt
 
 from eroom import EroomManagerSchedule, MetaData
-from write_hwp import modify_hwp_file
+from hwp_processor import modify_hwp_file
 
 class InputForm(QWidget):
     def __init__(self):

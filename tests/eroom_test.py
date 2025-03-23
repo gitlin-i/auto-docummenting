@@ -16,7 +16,7 @@ def setup_test_directory():
 @pytest.fixture
 def valid_metadata():
     path = setup_test_directory()
-    return MetaData(path, "template.hwp", "output.hwp", "2025-03")
+    return MetaData(path, "template.hwp", "output.hwp", "2025-02")
 
 @pytest.fixture
 def invalid_metadata_path():
@@ -31,12 +31,12 @@ def test_metadata_initialization(valid_metadata):
     assert valid_metadata.default_file_path == "./tests"
     assert valid_metadata.input_file == "template.hwp"
     assert valid_metadata.output_file_name == "output.hwp"
-    assert valid_metadata.target_date == "2025-03"
+    assert valid_metadata.target_date == "2025-02"
 
 # 경로 검증 실패 테스트
 def test_metadata_invalid_path(invalid_metadata_path):
     with pytest.raises(FileNotFoundError):
-        MetaData(invalid_metadata_path, "template.hwp", "output.hwp", "2025-03")
+        MetaData(invalid_metadata_path, "template.hwp", "output.hwp", "2025-02")
 
 # 날짜 검증 실패 테스트
 def test_metadata_invalid_date():
@@ -45,14 +45,21 @@ def test_metadata_invalid_date():
 
 # 주말 날짜 계산 테스트
 def test_get_weekends(valid_metadata):
-    weekends = valid_metadata.get_weekends()
+    weekends = valid_metadata.get_weekends() # 2025년 2월의 주말 {1, 2, 8, 9, 15, 16, 22, 23}
     assert isinstance(weekends, set)
     assert all(isinstance(day, int) for day in weekends)
+    assert weekends == {1, 2, 8, 9, 15, 16, 22, 23}
+
+
+def test_get_invalid_days( valid_metadata):
+    expected_invalid_days = {29, 30, 31}
+    assert valid_metadata.get_invalid_days() == expected_invalid_days
+
 
 # EroomManagerSchedule 테스트
 @pytest.fixture
 def valid_schedule():
-    return EroomManagerSchedule("홍길동", "2025-03-10", "2025-03-15")
+    return EroomManagerSchedule("홍길동", "2025-02-10", "2025-02-15")
 
 def test_get_day_off(valid_metadata, valid_schedule):
     days_off = valid_schedule.get_day_off(valid_metadata)
@@ -69,5 +76,5 @@ def test_generate_replace_dict(valid_metadata, valid_schedule):
     replace_dict = generate_replace_dict(valid_metadata, valid_schedule)
     assert replace_dict["%Name"] == "홍길동"
     assert replace_dict["%Year"] == "2025"
-    assert replace_dict["%Month"] == "3"
+    assert replace_dict["%Month"] == "2"
     assert "%일1" in replace_dict
