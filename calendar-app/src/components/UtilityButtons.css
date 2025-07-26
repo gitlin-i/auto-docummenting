@@ -1,0 +1,142 @@
+.utility-buttons-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 300px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.utility-title {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.utility-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.utility-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.utility-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
+  pointer-events: none;
+}
+
+.utility-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.utility-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.button-icon {
+  font-size: 1.2rem;
+  z-index: 1;
+}
+
+.button-text {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* 클리어 버튼 */
+.clear-btn {
+  background: linear-gradient(135deg, #FF6B6B, #EE5A52);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.clear-btn:hover {
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.clear-btn:active {
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* 이전달 이동 버튼 */
+.prev-month-btn {
+  background: linear-gradient(135deg, #4ECDC4, #44A08D);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.prev-month-btn:hover {
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+}
+
+.prev-month-btn:active {
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+/* 다음달 이동 버튼 */
+.next-month-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.next-month-btn:hover {
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.next-month-btn:active {
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.current-month-info {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .utility-buttons-container {
+    width: 100%;
+    max-width: 350px;
+    padding: 20px;
+  }
+  
+  .utility-btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .button-icon {
+    font-size: 1rem;
+  }
+} 

@@ -58,6 +58,158 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
     return dayOfWeek >= 1 && dayOfWeek <= 5; // 월요일(1) ~ 금요일(5)
   };
 
+  // 편의 기능: 현재 달 데이터 클리어
+  const clearCurrentMonth = () => {
+    const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    
+    setOvertimeSchedules(prev => {
+      const newSchedules = { ...prev };
+      Object.keys(newSchedules).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          delete newSchedules[key];
+        }
+      });
+      return newSchedules;
+    });
+
+    setSubstituteHolidays(prev => {
+      const newHolidays = { ...prev };
+      Object.keys(newHolidays).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          delete newHolidays[key];
+        }
+      });
+      return newHolidays;
+    });
+
+    setVacationSchedules(prev => {
+      const newVacations = { ...prev };
+      Object.keys(newVacations).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          delete newVacations[key];
+        }
+      });
+      return newVacations;
+    });
+    
+    // 파일 저장 알림
+    if (onDataUpdate) {
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+    }
+  };
+
+  // 편의 기능: 다음 달로 이동 (데이터 4주 뒤로)
+  const moveToNextMonth = () => {
+    const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    const nextMonthKey = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+
+    // 토요일 근무와 대체 휴무일을 4주 뒤로 이동
+    setOvertimeSchedules(prev => {
+      const newSchedules = { ...prev };
+      Object.keys(newSchedules).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          const day = key.split('-')[2];
+          const currentDate = new Date(key.split('-')[0], key.split('-')[1] - 1, day);
+          const nextDate = new Date(currentDate.getTime() + (4 * 7 * 24 * 60 * 60 * 1000)); // 4주 뒤
+          const newKey = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
+          newSchedules[newKey] = newSchedules[key];
+          delete newSchedules[key];
+        }
+      });
+      return newSchedules;
+    });
+
+    setSubstituteHolidays(prev => {
+      const newHolidays = { ...prev };
+      Object.keys(newHolidays).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          const day = key.split('-')[2];
+          const currentDate = new Date(key.split('-')[0], key.split('-')[1] - 1, day);
+          const nextDate = new Date(currentDate.getTime() + (4 * 7 * 24 * 60 * 60 * 1000)); // 4주 뒤
+          const newKey = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
+          newHolidays[newKey] = newHolidays[key];
+          delete newHolidays[key];
+        }
+      });
+      return newHolidays;
+    });
+
+    // 연가는 클리어
+    setVacationSchedules(prev => {
+      const newVacations = { ...prev };
+      Object.keys(newVacations).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          delete newVacations[key];
+        }
+      });
+      return newVacations;
+    });
+
+    setCurrentDate(nextMonth);
+    
+    // 파일 저장 알림
+    if (onDataUpdate) {
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+    }
+  };
+
+  // 편의 기능: 이전 달로 이동 (데이터 4주 앞으로)
+  const moveToPrevMonth = () => {
+    const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    const prevMonthKey = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`;
+
+    // 토요일 근무와 대체 휴무일을 4주 앞으로 이동
+    setOvertimeSchedules(prev => {
+      const newSchedules = { ...prev };
+      Object.keys(newSchedules).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          const day = key.split('-')[2];
+          const currentDate = new Date(key.split('-')[0], key.split('-')[1] - 1, day);
+          const prevDate = new Date(currentDate.getTime() - (4 * 7 * 24 * 60 * 60 * 1000)); // 4주 앞
+          const newKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+          newSchedules[newKey] = newSchedules[key];
+          delete newSchedules[key];
+        }
+      });
+      return newSchedules;
+    });
+
+    setSubstituteHolidays(prev => {
+      const newHolidays = { ...prev };
+      Object.keys(newHolidays).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          const day = key.split('-')[2];
+          const currentDate = new Date(key.split('-')[0], key.split('-')[1] - 1, day);
+          const prevDate = new Date(currentDate.getTime() - (4 * 7 * 24 * 60 * 60 * 1000)); // 4주 앞
+          const newKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+          newHolidays[newKey] = newHolidays[key];
+          delete newHolidays[key];
+        }
+      });
+      return newHolidays;
+    });
+
+    // 연가는 클리어
+    setVacationSchedules(prev => {
+      const newVacations = { ...prev };
+      Object.keys(newVacations).forEach(key => {
+        if (key.startsWith(currentMonthKey)) {
+          delete newVacations[key];
+        }
+      });
+      return newVacations;
+    });
+
+    setCurrentDate(prevMonth);
+    
+    // 파일 저장 알림
+    if (onDataUpdate) {
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+    }
+  };
+
   const handleLegendClick = (legendType) => {
     setSelectedLegend(legendType);
   };
@@ -267,6 +419,21 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
           </span>
         </div>
       )}
+
+      {/* 편의 기능 버튼들 */}
+      <div className="calendar-utilities">
+        <button className="utility-btn clear-month-btn" onClick={clearCurrentMonth}>
+          🗑️ 현재 달 클리어
+        </button>
+        <div className="month-navigation">
+          <button className="utility-btn prev-month-btn" onClick={moveToPrevMonth}>
+            ⬅️ 4주 앞 이동
+          </button>
+          <button className="utility-btn next-month-btn" onClick={moveToNextMonth}>
+            ➡️ 4주 뒤 이동
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

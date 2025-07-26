@@ -221,6 +221,68 @@
   line-height: 1.5;
 }
 
+/* 편의 기능 버튼들 */
+.calendar-utilities {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.calendar-utilities .utility-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.calendar-utilities .clear-month-btn {
+  background: linear-gradient(135deg, #FF6B6B, #EE5A52);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.calendar-utilities .clear-month-btn:hover {
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+  transform: translateY(-2px);
+}
+
+.month-navigation {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.calendar-utilities .prev-month-btn {
+  background: linear-gradient(135deg, #4ECDC4, #44A08D);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.calendar-utilities .prev-month-btn:hover {
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+  transform: translateY(-2px);
+}
+
+.calendar-utilities .next-month-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.calendar-utilities .next-month-btn:hover {
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+}
+
 /* Responsive design */
 @media (max-width: 480px) {
   .calendar-container {
@@ -259,5 +321,22 @@
   .manager-indicator {
     width: 6px;
     height: 6px;
+  }
+} 
+
+/* Responsive design for utilities */
+@media (max-width: 768px) {
+  .calendar-utilities {
+    padding: 15px;
+  }
+  
+  .calendar-utilities .utility-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .month-navigation {
+    flex-direction: column;
+    gap: 8px;
   }
 } 
