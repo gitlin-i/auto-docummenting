@@ -1,28 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './ManagerList.css';
 
 const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, savedManagers = [] }) => {
   const [managers, setManagers] = useState(savedManagers);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newManagerName, setNewManagerName] = useState('');
+  const isInitialMount = useRef(true);
+  const lastSavedManagers = useRef(savedManagers);
 
-  // 고유한 색상 팔레트
   const colorPalette = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
     '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
   ];
 
-  // savedManagers가 변경될 때 상태 업데이트
+  // savedManagers가 변경될 때 상태 업데이트 (초기 마운트 시에는 제외)
   useEffect(() => {
-    setManagers(savedManagers);
+    if (!isInitialMount.current && JSON.stringify(savedManagers) !== JSON.stringify(lastSavedManagers.current)) {
+      setManagers(savedManagers);
+      lastSavedManagers.current = savedManagers;
+    } else if (isInitialMount.current) {
+      isInitialMount.current = false;
+      lastSavedManagers.current = savedManagers;
+    }
   }, [savedManagers]);
 
-  // 매니저 목록이 변경될 때마다 부모 컴포넌트에 전달
-  useEffect(() => {
-    if (onManagersUpdate) {
-      onManagersUpdate(managers);
+  // 매니저 목록이 변경될 때마다 부모 컴포넌트에 전달 (실제 변경이 있을 때만)
+  const handleManagersUpdate = useCallback((newManagers) => {
+    if (JSON.stringify(newManagers) !== JSON.stringify(lastSavedManagers.current)) {
+      lastSavedManagers.current = newManagers;
+      if (onManagersUpdate) {
+        onManagersUpdate(newManagers);
+      }
     }
-  }, [managers, onManagersUpdate]);
+  }, [onManagersUpdate]);
+
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      handleManagersUpdate(managers);
+    }
+  }, [managers, handleManagersUpdate]);
 
   const addManager = () => {
     if (managers.length >= 4) {
@@ -64,8 +80,8 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
       
       <div className="managers-grid">
         {managers.map((manager) => (
-          <div 
-            key={manager.id} 
+          <div
+            key={manager.id}
             className={`manager-card ${selectedManager && selectedManager.id === manager.id ? 'selected' : ''}`}
             style={{ backgroundColor: manager.color }}
             onClick={() => handleManagerClick(manager)}
@@ -73,7 +89,7 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
             <div className="manager-info">
               <span className="manager-name">{manager.name}</span>
             </div>
-            <button 
+            <button
               className="remove-manager-btn"
               onClick={(e) => {
                 e.stopPropagation();
