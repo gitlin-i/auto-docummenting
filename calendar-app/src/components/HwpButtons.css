@@ -22,49 +22,60 @@
   gap: 15px;
 }
 
+/* HWP 버튼 스타일 */
 .hwp-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
   font-weight: 600;
-  font-size: 1rem;
+  transition: all 0.3s ease;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.hwp-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
-  pointer-events: none;
 }
 
 .hwp-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
-.hwp-button:active {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .hwp-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+}
+
+/* 다운로드 안내 정보 스타일 */
+.download-info {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.download-info p {
+  margin: 5px 0;
+  line-height: 1.4;
+}
+
+/* HWP 메시지 스타일 */
+.hwp-message {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+  font-size: 0.9rem;
+  color: #333;
+  white-space: pre-line;
 }
 
 .button-icon {

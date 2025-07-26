@@ -43,13 +43,51 @@ const HwpButtons = ({ managers, savedData, currentDate }) => {
     }
     setIsGenerating(true);
     setMessage('HWP 파일을 생성하고 있습니다...');
+    
     try {
-      // 실제 Pyodide 연동 시 templateFile, selectedManager, 날짜 등 전달
-      // 아래는 예시
       const targetMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      // await pythonRunner.generateHwpFileForManager(templateFile, selectedManager, targetMonth);
-      setMessage(`✅ ${selectedManager} 매니저 HWP 파일 생성 완료 (시뮬레이션)`);
+      
+      // 템플릿 파일을 ArrayBuffer로 변환
+      const templateBuffer = await templateFile.arrayBuffer();
+      
+      // 달력 데이터 수집
+      const calendarData = {
+        manager: selectedManager,
+        targetMonth: targetMonth,
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth() + 1,
+        overtimeSchedules: savedData?.overtimeSchedules || {},
+        substituteHolidays: savedData?.substituteHolidays || {},
+        vacationSchedules: savedData?.vacationSchedules || {}
+      };
+      
+      console.log('전달할 데이터:', calendarData);
+      
+      // Pyodide로 HWP 파일 생성
+      const result = await pythonRunner.generateHwpFileForManager(
+        templateBuffer,
+        templateFileName,
+        calendarData
+      );
+      
+      if (result && result.success) {
+        setMessage(`✅ ${selectedManager} 매니저 HWP 파일 생성 완료!`);
+        console.log('HWP 파일 생성 결과:', result);
+        
+        // 파일 다운로드
+        if (result.filename && result.content) {
+          const downloadSuccess = await pythonRunner.downloadFile(result.filename, result.content);
+          if (downloadSuccess) {
+            setMessage(`✅ ${selectedManager} 매니저 HWP 파일이 다운로드되었습니다!\\n📁 브라우저 다운로드 폴더를 확인하세요.`);
+          } else {
+            setMessage(`❌ 파일 다운로드 실패`);
+          }
+        }
+      } else {
+        setMessage(`❌ HWP 파일 생성 실패: ${result?.message || '알 수 없는 오류'}`);
+      }
     } catch (error) {
+      console.error('HWP 파일 생성 오류:', error);
       setMessage(`❌ 오류: ${error.message}`);
     } finally {
       setIsGenerating(false);
@@ -68,11 +106,55 @@ const HwpButtons = ({ managers, savedData, currentDate }) => {
     }
     setIsGenerating(true);
     setMessage('모든 매니저 HWP 파일을 생성하고 있습니다...');
+    
     try {
-      // 실제 Pyodide 연동 시 templateFile, managers, 날짜 등 전달
-      // await pythonRunner.generateHwpFiles(templateFile, managers, targetMonth);
-      setMessage(`✅ 모든 매니저 HWP 파일 생성 완료 (시뮬레이션)`);
+      const targetMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      
+      // 템플릿 파일을 ArrayBuffer로 변환
+      const templateBuffer = await templateFile.arrayBuffer();
+      
+      // 달력 데이터 수집
+      const calendarData = {
+        managers: managers,
+        targetMonth: targetMonth,
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth() + 1,
+        overtimeSchedules: savedData?.overtimeSchedules || {},
+        substituteHolidays: savedData?.substituteHolidays || {},
+        vacationSchedules: savedData?.vacationSchedules || {}
+      };
+      
+      console.log('전달할 데이터:', calendarData);
+      
+      // Pyodide로 모든 매니저 HWP 파일 생성
+      const result = await pythonRunner.generateHwpFilesForAllManagers(
+        templateBuffer,
+        templateFileName,
+        calendarData
+      );
+      
+      if (result && result.success) {
+        setMessage(`✅ 모든 매니저 HWP 파일 생성 완료! (${result.generated_files?.length || 0}개)`);
+        console.log('HWP 파일 생성 결과:', result);
+        
+        // 각 파일 다운로드
+        if (result.generated_files) {
+          let downloadCount = 0;
+          for (const fileInfo of result.generated_files) {
+            if (fileInfo.filename && fileInfo.content) {
+              const downloadSuccess = await pythonRunner.downloadFile(fileInfo.filename, fileInfo.content);
+              if (downloadSuccess) {
+                downloadCount++;
+              }
+            }
+          }
+          setMessage(`✅ ${downloadCount}개 HWP 파일이 다운로드되었습니다!\\n📁 브라우저 다운로드 폴더를 확인하세요.`);
+        }
+      } else {
+        setMessage(`❌ HWP 파일 생성 실패: ${result?.message || '알 수 없는 오류'}`);
+      }
     } catch (error) {
+      console.error('HWP 파일 생성 오류:', error);
       setMessage(`❌ 오류: ${error.message}`);
     } finally {
       setIsGenerating(false);
@@ -159,11 +241,18 @@ const HwpButtons = ({ managers, savedData, currentDate }) => {
         </button>
       </div>
 
+      {/* 메시지 표시 */}
       {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : message.includes('❌') ? 'error' : 'info'}`}>
+        <div className="hwp-message">
           {message}
         </div>
       )}
+
+      {/* 다운로드 폴더 안내 */}
+      <div className="download-info">
+        <p>💡 <strong>다운로드 폴더:</strong> 브라우저 설정의 기본 다운로드 폴더에 저장됩니다.</p>
+        <p>📁 <strong>파일명:</strong> 청년이룸출근부_매니저이름_YYMM.hwp</p>
+      </div>
 
       <div className="hwp-info">
         <p>🚀 웹어셈블리 HWP 생성 사용법:</p>
