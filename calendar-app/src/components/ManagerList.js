@@ -9,8 +9,8 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
   const lastSavedManagers = useRef(savedManagers);
 
   const colorPalette = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-    '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+    '#FF6B6B', '#4ECDC4', '#F7DC6F', '#96CEB4',
+    '#FFEAA7', '#DDA0DD', '#98D8C8'
   ];
 
   // savedManagers가 변경될 때 상태 업데이트 (초기 마운트 시에는 제외)
