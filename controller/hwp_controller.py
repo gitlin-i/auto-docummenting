@@ -1,5 +1,5 @@
 import win32com.client
-from eroom import MetaData, generate_replace_dict, EroomManagerSchedule
+from model.eroom import MetaData, generate_replace_dict, EroomManagerSchedule,PublicHoliday
 import os
 
 class HwpProcessor:
@@ -115,6 +115,28 @@ class HwpProcessor:
                     self.apply_diagonal_to_weekend()
 
                 self.hwp.HAction.Run("MoveTop")
+
+
+    def mark_public_holiday(self, public_holidays):
+        """공휴일을 찾아 해당 셀에 '유급 연차'라고 표시"""
+        for day_label in ["%일1", "%일2"]:
+            self.find_and_select_cell(day_label)
+            for _ in range(16):
+                self.move_cell("down", 1)
+                self.select_cell()
+                self.hwp.HAction.Run("TableCellInput")
+                self.hwp.InitScan(0, 2)
+                text = self.hwp.GetText()
+                try:
+                    cell_date = int(text[1])
+                except ValueError:
+                    continue
+
+                # 입력받은 공휴일 리스트와 비교하여 같은 날짜를 찾음
+                for holiday in public_holidays:
+                    if self.meta_data.target_date in holiday and int(holiday[-2:]) == cell_date:
+                        self.insert_text("유급연차")
+
     def remove_invalid_days(self):
         """달의 말일을 기준으로 존재하지 않는 날짜를 제거"""
         invalid_days = self.meta_data.get_invalid_days()
@@ -141,13 +163,32 @@ class HwpProcessor:
             self.hwp.SaveAs(output_path)
         except Exception as e:
             raise Exception(f"파일 저장 실패: {e}")
+        
+    def insert_text(self, text, position='current'):
+        """
+        문서 내 특정 위치에 문자열을 입력하는 함수
+
+        :param text: 입력할 문자열
+        :param position: 텍스트 입력 위치 ('current', 'top', 'bottom')
+        """
+        try:
+            if position == 'top':
+                self.hwp.HAction.Run("MoveTop")
+            elif position == 'bottom':
+                self.hwp.HAction.Run("MoveBottom")
+            
+            self.hwp.HAction.GetDefault("InsertText", self.hwp.HParameterSet.HInsertText.HSet)
+            self.hwp.HParameterSet.HInsertText.Text = text
+            self.hwp.HAction.Execute("InsertText", self.hwp.HParameterSet.HInsertText.HSet)
+        except Exception as e:
+            raise Exception(f"텍스트 입력 실패: {e}")
 
     def close(self):
         """HWP 종료"""
         self.hwp.Quit()
 
 
-def modify_hwp_file(meta_data: MetaData, sc:EroomManagerSchedule):
+def modify_hwp_file(meta_data: MetaData, sc:EroomManagerSchedule, holidays : list[PublicHoliday]):
     """HWP 파일을 열고 지정된 단어를 변경한 후 저장"""
     processor = None
     replace_dict = generate_replace_dict(meta_data, sc)
@@ -157,6 +198,7 @@ def modify_hwp_file(meta_data: MetaData, sc:EroomManagerSchedule):
         processor.mark_day_off(sc.get_day_off(meta_data))
         processor.remove_invalid_days()
         processor.find_and_replace(replace_dict)
+        processor.mark_public_holiday(holidays)
         processor.save_file()
         print(f"파일이 성공적으로 저장되었습니다: {meta_data.output_file_name}")
     except Exception as e:

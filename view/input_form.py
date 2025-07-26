@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QDate, Qt
 
-from eroom import EroomManagerSchedule, MetaData
-from write_hwp import modify_hwp_file
+from model.eroom import EroomManagerSchedule, MetaData, PublicHoliday
+from controller.hwp_controller import modify_hwp_file
 
 class InputForm(QWidget):
     def __init__(self):
@@ -201,12 +201,21 @@ class InputForm(QWidget):
 
     def load_holiday_data(self):
         if not os.path.exists(self.holiday_file_path):
-            return
+            return []
         with open(self.holiday_file_path, mode='r', encoding='utf-8') as file:
             holidays = file.readlines()
         self.holiday_table.setRowCount(len(holidays))
         for i, date in enumerate(holidays):
             self.holiday_table.setItem(i, 0, QTableWidgetItem(date.strip()))
+
+        public_holidays = []
+        for date in holidays:
+            try:
+                public_holidays.append(PublicHoliday(date.strip()))
+            except ValueError as e:
+                print(f"공휴일 데이터를 불러오는 중 오류 발생: {e}")
+        return public_holidays
+    
     def delete_data(self):
         selected_row = self.table.currentRow()
         if selected_row == -1:
@@ -296,7 +305,7 @@ class InputForm(QWidget):
         try:
             current_year = self.year_combo.currentData()
             current_month = self.month_combo.currentData()
-            
+            holiday_days = self.load_holiday_data()
             if not os.path.exists(self.file_path):
                 QMessageBox.warning(self, "오류", "출력할 데이터가 없습니다.")
                 return
@@ -315,7 +324,7 @@ class InputForm(QWidget):
                     target_date=f"{current_year}-{str(current_month).zfill(2)}"
                 )
                 
-                modify_hwp_file(meta_data, ems)
+                modify_hwp_file(meta_data, ems,holiday_days)
             
             QMessageBox.information(self, "출력 완료", "한글 파일 출력이 완료되었습니다.")
         except Exception as e:

@@ -103,14 +103,8 @@ class PublicHoliday:
 
         :param date: 공휴일 날짜 (YYYY-MM-DD 형식의 문자열)
         """
-        self.date = self._validate_date(date)  # 날짜 검증 후 저장
+        self.date = date  # 날짜 검증 후 저장
 
-    def _validate_date(self, date):
-        """YYYY-MM-DD 형식의 날짜인지 검증"""
-        try:
-            return datetime.strptime(date, "%Y-%m-%d").date()
-        except ValueError:
-            raise ValueError("날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식이어야 합니다.")
 
     def __repr__(self):
         return f"PublicHoliday(date={self.date})"

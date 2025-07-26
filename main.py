@@ -1,5 +1,5 @@
 import sys
-from input_form import InputForm
+from view.input_form import InputForm
 from PyQt5.QtWidgets import (
     QApplication
 )
