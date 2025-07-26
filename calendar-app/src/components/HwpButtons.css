@@ -3,7 +3,7 @@
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 30px;
-  width: 250px;
+  width: 300px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -62,6 +62,11 @@
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
+.hwp-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .button-icon {
   font-size: 2rem;
   margin-bottom: 8px;
@@ -97,6 +102,113 @@
 
 .print-all-button:active {
   box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* HWP 테스트 버튼 */
+.hwp-test-button {
+  background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+  box-shadow: 0 4px 15px rgba(255, 217, 61, 0.3);
+}
+
+.hwp-test-button:hover {
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.4);
+}
+
+.hwp-test-button:active {
+  box-shadow: 0 4px 15px rgba(255, 217, 61, 0.3);
+}
+
+/* 메시지 스타일 */
+.message {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.message.success {
+  background: rgba(76, 175, 80, 0.1);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.message.error {
+  background: rgba(244, 67, 54, 0.1);
+  color: #c62828;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.message.info {
+  background: rgba(33, 150, 243, 0.1);
+  color: #1565c0;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+/* 정보 섹션 */
+.hwp-info {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.hwp-info p {
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+
+.hwp-info ol {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.hwp-info li {
+  margin: 5px 0;
+}
+
+.hwp-upload-label {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.template-upload-section {
+  margin: 25px 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  border: 1px dashed rgba(102, 126, 234, 0.3);
+}
+
+.template-upload-section button {
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.template-upload-section button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.template-upload-section button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 /* Responsive design */

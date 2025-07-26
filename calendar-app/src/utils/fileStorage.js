@@ -96,13 +96,67 @@ class FileStorage {
     try {
       const file = await this.fileHandle.getFile();
       const contents = await file.text();
-      this.data = JSON.parse(contents);
+      const loadedData = JSON.parse(contents);
+      
+      // 기존 데이터 마이그레이션 (id 필드 제거)
+      this.data = this.migrateData(loadedData);
+      
       console.log('데이터가 성공적으로 로드되었습니다.');
       return true;
     } catch (error) {
       console.error('데이터 로드 실패:', error);
       return false;
     }
+  }
+
+  // 데이터 마이그레이션 (id 필드 제거)
+  migrateData(loadedData) {
+    const migratedData = {
+      managers: [],
+      overtimeSchedules: {},
+      substituteHolidays: {},
+      vacationSchedules: {}
+    };
+
+    // 매니저 데이터 마이그레이션
+    if (loadedData.managers) {
+      migratedData.managers = loadedData.managers.map(manager => {
+        // id 필드가 있으면 제거하고 name만 유지
+        if (manager.id !== undefined) {
+          const { id, ...managerWithoutId } = manager;
+          return managerWithoutId;
+        }
+        return manager;
+      });
+    }
+
+    // 스케줄 데이터 마이그레이션
+    const migrateScheduleData = (scheduleData) => {
+      const migrated = {};
+      Object.keys(scheduleData).forEach(dateKey => {
+        migrated[dateKey] = scheduleData[dateKey].map(manager => {
+          // id 필드가 있으면 제거하고 name만 유지
+          if (manager.id !== undefined) {
+            const { id, ...managerWithoutId } = manager;
+            return managerWithoutId;
+          }
+          return manager;
+        });
+      });
+      return migrated;
+    };
+
+    if (loadedData.overtimeSchedules) {
+      migratedData.overtimeSchedules = migrateScheduleData(loadedData.overtimeSchedules);
+    }
+    if (loadedData.substituteHolidays) {
+      migratedData.substituteHolidays = migrateScheduleData(loadedData.substituteHolidays);
+    }
+    if (loadedData.vacationSchedules) {
+      migratedData.vacationSchedules = migrateScheduleData(loadedData.vacationSchedules);
+    }
+
+    return migratedData;
   }
 
   // 매니저 데이터 업데이트

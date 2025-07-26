@@ -51,8 +51,13 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
   const handleSubmit = (e) => {
     e.preventDefault();
     if (newManagerName.trim()) {
+      // 중복 이름 체크
+      if (managers.some(manager => manager.name === newManagerName.trim())) {
+        alert('이미 존재하는 매니저 이름입니다.');
+        return;
+      }
+      
       const newManager = {
-        id: Date.now(),
         name: newManagerName.trim(),
         color: colorPalette[managers.length % colorPalette.length]
       };
@@ -62,10 +67,10 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
     }
   };
 
-  const removeManager = (id) => {
-    setManagers(managers.filter(manager => manager.id !== id));
+  const removeManager = (name) => {
+    setManagers(managers.filter(manager => manager.name !== name));
     // 선택된 매니저가 삭제되면 선택 해제
-    if (selectedManager && selectedManager.id === id) {
+    if (selectedManager && selectedManager.name === name) {
       onManagerSelect(null);
     }
   };
@@ -81,8 +86,8 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
       <div className="managers-grid">
         {managers.map((manager) => (
           <div
-            key={manager.id}
-            className={`manager-card ${selectedManager && selectedManager.id === manager.id ? 'selected' : ''}`}
+            key={manager.name}
+            className={`manager-card ${selectedManager && selectedManager.name === manager.name ? 'selected' : ''}`}
             style={{ backgroundColor: manager.color }}
             onClick={() => handleManagerClick(manager)}
           >
@@ -93,7 +98,7 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
               className="remove-manager-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                removeManager(manager.id);
+                removeManager(manager.name);
               }}
             >
               ×

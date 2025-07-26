@@ -230,10 +230,10 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
           newSchedules[dateKey] = [];
         }
         
-        const managerExists = newSchedules[dateKey].find(m => m.id === selectedManager.id);
+        const managerExists = newSchedules[dateKey].find(m => m.name === selectedManager.name);
         
         if (managerExists) {
-          newSchedules[dateKey] = newSchedules[dateKey].filter(m => m.id !== selectedManager.id);
+          newSchedules[dateKey] = newSchedules[dateKey].filter(m => m.name !== selectedManager.name);
           if (newSchedules[dateKey].length === 0) {
             delete newSchedules[dateKey];
           }
@@ -251,10 +251,10 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
           newHolidays[dateKey] = [];
         }
         
-        const managerExists = newHolidays[dateKey].find(m => m.id === selectedManager.id);
+        const managerExists = newHolidays[dateKey].find(m => m.name === selectedManager.name);
         
         if (managerExists) {
-          newHolidays[dateKey] = newHolidays[dateKey].filter(m => m.id !== selectedManager.id);
+          newHolidays[dateKey] = newHolidays[dateKey].filter(m => m.name !== selectedManager.name);
           if (newHolidays[dateKey].length === 0) {
             delete newHolidays[dateKey];
           }
@@ -272,10 +272,10 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
           newVacations[dateKey] = [];
         }
         
-        const managerExists = newVacations[dateKey].find(m => m.id === selectedManager.id);
+        const managerExists = newVacations[dateKey].find(m => m.name === selectedManager.name);
         
         if (managerExists) {
-          newVacations[dateKey] = newVacations[dateKey].filter(m => m.id !== selectedManager.id);
+          newVacations[dateKey] = newVacations[dateKey].filter(m => m.name !== selectedManager.name);
           if (newVacations[dateKey].length === 0) {
             delete newVacations[dateKey];
           }

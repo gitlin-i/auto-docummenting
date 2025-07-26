@@ -137,7 +137,11 @@ function App() {
             onDataUpdate={handleCalendarDataUpdate}
             savedData={savedCalendarData}
           />
-          <HwpButtons />
+          <HwpButtons 
+            managers={managers}
+            savedData={savedCalendarData}
+            currentDate={new Date()}
+          />
         </div>
       </main>
     </div>
