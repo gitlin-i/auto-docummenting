@@ -1,12 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 
-const Calendar = ({ selectedManager, managers }) => {
+const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [overtimeSchedules, setOvertimeSchedules] = useState({}); // 토요일 추가근무 스케줄
-  const [substituteHolidays, setSubstituteHolidays] = useState({}); // 대체 휴무일
-  const [vacationSchedules, setVacationSchedules] = useState({}); // 연가 스케줄
+  const [overtimeSchedules, setOvertimeSchedules] = useState(savedData?.overtimeSchedules || {}); // 토요일 추가근무 스케줄
+  const [substituteHolidays, setSubstituteHolidays] = useState(savedData?.substituteHolidays || {}); // 대체 휴무일
+  const [vacationSchedules, setVacationSchedules] = useState(savedData?.vacationSchedules || {}); // 연가 스케줄
   const [selectedLegend, setSelectedLegend] = useState('overtime'); // 선택된 범례
+
+  // savedData가 변경될 때 상태 업데이트
+  useEffect(() => {
+    if (savedData) {
+      setOvertimeSchedules(savedData.overtimeSchedules || {});
+      setSubstituteHolidays(savedData.substituteHolidays || {});
+      setVacationSchedules(savedData.vacationSchedules || {});
+    }
+  }, [savedData]);
+
+  // 데이터 변경 시 부모 컴포넌트에 알림
+  useEffect(() => {
+    if (onDataUpdate) {
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+    }
+  }, [overtimeSchedules, substituteHolidays, vacationSchedules, onDataUpdate]);
 
   const daysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();

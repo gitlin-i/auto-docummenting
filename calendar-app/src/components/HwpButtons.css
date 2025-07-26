@@ -1,0 +1,128 @@
+.hwp-buttons-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 250px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hwp-title {
+  margin: 0 0 25px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.hwp-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.hwp-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.hwp-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
+  pointer-events: none;
+}
+
+.hwp-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.hwp-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.button-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  z-index: 1;
+}
+
+.button-text {
+  font-size: 0.9rem;
+  z-index: 1;
+}
+
+.single-print-button {
+  background: linear-gradient(135deg, #4ECDC4, #44A08D);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.single-print-button:hover {
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+}
+
+.single-print-button:active {
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.print-all-button {
+  background: linear-gradient(135deg, #FF6B6B, #EE5A52);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.print-all-button:hover {
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.print-all-button:active {
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .hwp-buttons-container {
+    width: 100%;
+    max-width: 350px;
+    padding: 20px;
+  }
+  
+  .hwp-title {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+  }
+  
+  .hwp-button {
+    padding: 15px;
+    font-size: 0.9rem;
+  }
+  
+  .button-icon {
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+  }
+  
+  .button-text {
+    font-size: 0.8rem;
+  }
+} 

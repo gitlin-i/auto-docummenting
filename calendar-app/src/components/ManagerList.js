@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './ManagerList.css';
 
-const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate }) => {
-  const [managers, setManagers] = useState([]);
+const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, savedManagers = [] }) => {
+  const [managers, setManagers] = useState(savedManagers);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newManagerName, setNewManagerName] = useState('');
 
@@ -11,6 +11,11 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate }) => 
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
     '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
   ];
+
+  // savedManagers가 변경될 때 상태 업데이트
+  useEffect(() => {
+    setManagers(savedManagers);
+  }, [savedManagers]);
 
   // 매니저 목록이 변경될 때마다 부모 컴포넌트에 전달
   useEffect(() => {
