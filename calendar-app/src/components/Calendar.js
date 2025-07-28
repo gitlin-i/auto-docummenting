@@ -7,6 +7,7 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
   const [substituteHolidays, setSubstituteHolidays] = useState(savedData?.substituteHolidays || {}); // 대체 휴무일
   const [vacationSchedules, setVacationSchedules] = useState(savedData?.vacationSchedules || {}); // 연가 스케줄
   const [selectedLegend, setSelectedLegend] = useState('overtime'); // 선택된 범례
+  const [targetDate, setTargetDate] = useState(savedData?.targetDate || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
 
   // savedData가 변경될 때 상태 업데이트
   useEffect(() => {
@@ -20,9 +21,15 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
   // 데이터 변경 시 부모 컴포넌트에 알림
   useEffect(() => {
     if (onDataUpdate) {
-      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+      console.log('Calendar에서 데이터 업데이트 호출:', {
+        overtimeSchedules,
+        substituteHolidays,
+        vacationSchedules,
+        targetDate
+      });
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules, targetDate);
     }
-  }, [overtimeSchedules, substituteHolidays, vacationSchedules, onDataUpdate]);
+  }, [overtimeSchedules, substituteHolidays, vacationSchedules, targetDate, onDataUpdate]);
 
   const daysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -37,14 +44,28 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
+  const koreanMonthNames = [
+    '1월', '2월', '3월', '4월', '5월', '6월',
+    '7월', '8월', '9월', '10월', '11월', '12월'
+  ];
+
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(newDate);
+    updateTargetDate(newDate);
   };
 
   const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(newDate);
+    updateTargetDate(newDate);
+  };
+
+  const updateTargetDate = (date) => {
+    const newTargetDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    setTargetDate(newTargetDate);
   };
 
   const isSaturday = (day) => {
@@ -366,7 +387,7 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
           ‹
         </button>
         <h2 className="calendar-title">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          {currentDate.getFullYear()}년 {koreanMonthNames[currentDate.getMonth()]} 출근부
         </h2>
         <button className="calendar-nav-btn" onClick={nextMonth}>
           ›

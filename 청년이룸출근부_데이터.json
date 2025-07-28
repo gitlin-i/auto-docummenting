@@ -1,0 +1,58 @@
+{
+  "managers": [
+    {
+      "name": "박석진",
+      "color": "#FF6B6B"
+    },
+    {
+      "name": "김단아",
+      "color": "#4ECDC4"
+    },
+    {
+      "name": "문주원",
+      "color": "#F7DC6F"
+    }
+  ],
+  "overtimeSchedules": {
+    "2025-07-26": [
+      {
+        "name": "박석진",
+        "color": "#FF6B6B"
+      }
+    ],
+    "2025-07-19": [
+      {
+        "name": "김단아",
+        "color": "#4ECDC4"
+      }
+    ],
+    "2025-07-05": [
+      {
+        "name": "문주원",
+        "color": "#F7DC6F"
+      }
+    ]
+  },
+  "substituteHolidays": {
+    "2025-07-18": [
+      {
+        "name": "김단아",
+        "color": "#4ECDC4"
+      }
+    ],
+    "2025-07-21": [
+      {
+        "name": "박석진",
+        "color": "#FF6B6B"
+      }
+    ],
+    "2025-07-02": [
+      {
+        "name": "문주원",
+        "color": "#F7DC6F"
+      }
+    ]
+  },
+  "vacationSchedules": {},
+  "targetDate": "2025-07"
+}

@@ -7,7 +7,8 @@ class FileStorage {
       managers: [],
       overtimeSchedules: {},
       substituteHolidays: {},
-      vacationSchedules: {}
+      vacationSchedules: {},
+      targetDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
     };
   }
 
@@ -76,9 +77,11 @@ class FileStorage {
 
     try {
       const writable = await this.fileHandle.createWritable();
-      await writable.write(JSON.stringify(this.data, null, 2));
+      const dataToSave = JSON.stringify(this.data, null, 2);
+      await writable.write(dataToSave);
       await writable.close();
       console.log('데이터가 성공적으로 저장되었습니다.');
+      console.log('저장된 데이터:', this.data);
       return true;
     } catch (error) {
       console.error('데이터 저장 실패:', error);
@@ -115,7 +118,8 @@ class FileStorage {
       managers: [],
       overtimeSchedules: {},
       substituteHolidays: {},
-      vacationSchedules: {}
+      vacationSchedules: {},
+      targetDate: loadedData.targetDate || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
     };
 
     // 매니저 데이터 마이그레이션
@@ -165,10 +169,17 @@ class FileStorage {
   }
 
   // 달력 데이터 업데이트
-  updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules) {
+  updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules, targetDate) {
     this.data.overtimeSchedules = overtimeSchedules;
     this.data.substituteHolidays = substituteHolidays;
     this.data.vacationSchedules = vacationSchedules;
+    this.data.targetDate = targetDate;
+    console.log('Calendar 데이터 업데이트:', {
+      overtimeSchedules,
+      substituteHolidays,
+      vacationSchedules,
+      targetDate
+    });
   }
 
   // 전체 데이터 가져오기

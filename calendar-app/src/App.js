@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Calendar from './components/Calendar';
 import ManagerList from './components/ManagerList';
-import HwpButtons from './components/HwpButtons';
 import FileStorage from './utils/fileStorage';
 
 function App() {
@@ -13,7 +12,8 @@ function App() {
   const [savedCalendarData, setSavedCalendarData] = useState({
     overtimeSchedules: {},
     substituteHolidays: {},
-    vacationSchedules: {}
+    vacationSchedules: {},
+    targetDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
   });
 
   // 앱 시작 시 File System Access API 지원 확인
@@ -36,10 +36,16 @@ function App() {
     }
   };
 
-  const handleCalendarDataUpdate = (overtimeSchedules, substituteHolidays, vacationSchedules) => {
+  const handleCalendarDataUpdate = (overtimeSchedules, substituteHolidays, vacationSchedules, targetDate) => {
+    console.log('App에서 Calendar 데이터 업데이트:', {
+      overtimeSchedules,
+      substituteHolidays,
+      vacationSchedules,
+      targetDate
+    });
     // 파일에 달력 데이터 저장
     if (isFileInitialized) {
-      fileStorage.updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules);
+      fileStorage.updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules, targetDate);
       fileStorage.saveData();
     }
   };
@@ -55,7 +61,8 @@ function App() {
         setSavedCalendarData({
           overtimeSchedules: data.overtimeSchedules || {},
           substituteHolidays: data.substituteHolidays || {},
-          vacationSchedules: data.vacationSchedules || {}
+          vacationSchedules: data.vacationSchedules || {},
+          targetDate: data.targetDate || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
         });
         setIsFileInitialized(true);
         alert('파일이 성공적으로 로드되었습니다.');
@@ -74,7 +81,8 @@ function App() {
       setSavedCalendarData({
         overtimeSchedules: {},
         substituteHolidays: {},
-        vacationSchedules: {}
+        vacationSchedules: {},
+        targetDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
       });
       alert('새 파일이 생성되었습니다.');
     }
@@ -136,11 +144,6 @@ function App() {
             managers={managers}
             onDataUpdate={handleCalendarDataUpdate}
             savedData={savedCalendarData}
-          />
-          <HwpButtons 
-            managers={managers}
-            savedData={savedCalendarData}
-            currentDate={new Date()}
           />
         </div>
       </main>
