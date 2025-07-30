@@ -13,8 +13,10 @@ function App() {
     overtimeSchedules: {},
     substituteHolidays: {},
     vacationSchedules: {},
+    paidHolidays: [],
     targetDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
   });
+  const [paidHolidayMode, setPaidHolidayMode] = useState('none');
 
   // 앱 시작 시 File System Access API 지원 확인
   useEffect(() => {
@@ -36,18 +38,23 @@ function App() {
     }
   };
 
-  const handleCalendarDataUpdate = (overtimeSchedules, substituteHolidays, vacationSchedules, targetDate) => {
+  const handleCalendarDataUpdate = (overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate) => {
     console.log('App에서 Calendar 데이터 업데이트:', {
       overtimeSchedules,
       substituteHolidays,
       vacationSchedules,
+      paidHolidays,
       targetDate
     });
     // 파일에 달력 데이터 저장
     if (isFileInitialized) {
-      fileStorage.updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules, targetDate);
+      fileStorage.updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate);
       fileStorage.saveData();
     }
+  };
+
+  const handlePaidHolidayModeChange = (mode) => {
+    setPaidHolidayMode(mode);
   };
 
   const handleOpenFile = async () => {
@@ -62,6 +69,7 @@ function App() {
           overtimeSchedules: data.overtimeSchedules || {},
           substituteHolidays: data.substituteHolidays || {},
           vacationSchedules: data.vacationSchedules || {},
+          paidHolidays: data.paidHolidays || [],
           targetDate: data.targetDate || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
         });
         setIsFileInitialized(true);
@@ -82,6 +90,7 @@ function App() {
         overtimeSchedules: {},
         substituteHolidays: {},
         vacationSchedules: {},
+        paidHolidays: [],
         targetDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
       });
       alert('새 파일이 생성되었습니다.');
@@ -138,12 +147,14 @@ function App() {
             selectedManager={selectedManager}
             onManagersUpdate={handleManagersUpdate}
             savedManagers={managers}
+            isDisabled={paidHolidayMode !== 'none'}
           />
           <Calendar 
             selectedManager={selectedManager}
             managers={managers}
             onDataUpdate={handleCalendarDataUpdate}
             savedData={savedCalendarData}
+            onPaidHolidayModeChange={handlePaidHolidayModeChange}
           />
         </div>
       </main>

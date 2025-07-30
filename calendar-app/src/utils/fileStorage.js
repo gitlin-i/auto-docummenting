@@ -8,6 +8,7 @@ class FileStorage {
       overtimeSchedules: {},
       substituteHolidays: {},
       vacationSchedules: {},
+      paidHolidays: [],
       targetDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
     };
   }
@@ -119,6 +120,7 @@ class FileStorage {
       overtimeSchedules: {},
       substituteHolidays: {},
       vacationSchedules: {},
+      paidHolidays: [],
       targetDate: loadedData.targetDate || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
     };
 
@@ -159,6 +161,9 @@ class FileStorage {
     if (loadedData.vacationSchedules) {
       migratedData.vacationSchedules = migrateScheduleData(loadedData.vacationSchedules);
     }
+    if (loadedData.paidHolidays) {
+      migratedData.paidHolidays = loadedData.paidHolidays;
+    }
 
     return migratedData;
   }
@@ -169,15 +174,17 @@ class FileStorage {
   }
 
   // 달력 데이터 업데이트
-  updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules, targetDate) {
+  updateCalendarData(overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate) {
     this.data.overtimeSchedules = overtimeSchedules;
     this.data.substituteHolidays = substituteHolidays;
     this.data.vacationSchedules = vacationSchedules;
+    this.data.paidHolidays = paidHolidays;
     this.data.targetDate = targetDate;
     console.log('Calendar 데이터 업데이트:', {
       overtimeSchedules,
       substituteHolidays,
       vacationSchedules,
+      paidHolidays,
       targetDate
     });
   }

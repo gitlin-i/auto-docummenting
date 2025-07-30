@@ -6,6 +6,25 @@
   width: 300px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.manager-list-container.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  position: relative;
+}
+
+.manager-list-container.disabled::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  z-index: 1;
 }
 
 .manager-title {
@@ -51,6 +70,16 @@
 .manager-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.manager-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.manager-card.disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .manager-card.selected {
@@ -107,6 +136,17 @@
   border-color: #667eea;
   background: rgba(102, 126, 234, 0.1);
   transform: translateY(-2px);
+}
+
+.add-manager-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.add-manager-card.disabled:hover {
+  border-color: #ddd;
+  background: transparent;
+  transform: none;
 }
 
 .add-icon {

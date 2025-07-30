@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './ManagerList.css';
 
-const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, savedManagers = [] }) => {
+const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, savedManagers = [], isDisabled = false }) => {
   const [managers, setManagers] = useState(savedManagers);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newManagerName, setNewManagerName] = useState('');
@@ -80,16 +80,16 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
   };
 
   return (
-    <div className="manager-list-container">
+    <div className={`manager-list-container ${isDisabled ? 'disabled' : ''}`}>
       <h2 className="manager-title">매니저 목록</h2>
       
       <div className="managers-grid">
         {managers.map((manager) => (
           <div
             key={manager.name}
-            className={`manager-card ${selectedManager && selectedManager.name === manager.name ? 'selected' : ''}`}
+            className={`manager-card ${selectedManager && selectedManager.name === manager.name ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
             style={{ backgroundColor: manager.color }}
-            onClick={() => handleManagerClick(manager)}
+            onClick={isDisabled ? undefined : () => handleManagerClick(manager)}
           >
             <div className="manager-info">
               <span className="manager-name">{manager.name}</span>
@@ -98,8 +98,11 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
               className="remove-manager-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                removeManager(manager.name);
+                if (!isDisabled) {
+                  removeManager(manager.name);
+                }
               }}
+              disabled={isDisabled}
             >
               ×
             </button>
@@ -107,7 +110,7 @@ const ManagerList = ({ onManagerSelect, selectedManager, onManagersUpdate, saved
         ))}
         
         {managers.length < 4 && (
-          <div className="add-manager-card" onClick={addManager}>
+          <div className={`add-manager-card ${isDisabled ? 'disabled' : ''}`} onClick={isDisabled ? undefined : addManager}>
             <div className="add-icon">+</div>
             <span className="add-text">매니저 추가</span>
           </div>

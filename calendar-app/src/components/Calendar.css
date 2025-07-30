@@ -1,3 +1,21 @@
+.calendar-layout {
+  display: flex;
+  gap: 30px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.calendar-main {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  max-width: 400px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .calendar-container {
   background: white;
   border-radius: 20px;
@@ -102,6 +120,8 @@
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
+
+
 .calendar-grid {
   width: 100%;
 }
@@ -147,6 +167,11 @@
   transform: scale(1.05);
 }
 
+.calendar-day.paid-holiday:hover {
+  background: rgba(255, 165, 0, 0.3);
+  transform: scale(1.05);
+}
+
 .calendar-day.today {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
@@ -165,6 +190,11 @@
 .calendar-day.weekday {
   background: rgba(150, 206, 180, 0.1);
   border: 1px solid rgba(150, 206, 180, 0.3);
+}
+
+.calendar-day.paid-holiday {
+  background: rgba(255, 165, 0, 0.2);
+  border: 1px solid rgba(255, 165, 0, 0.4);
 }
 
 .calendar-day.empty {
@@ -209,6 +239,8 @@
 .manager-indicator.vacation {
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
+
+
 
 .selected-manager-info {
   margin-top: 20px;
@@ -283,9 +315,127 @@
   transform: translateY(-2px);
 }
 
+/* 유급휴일 관리 패널 */
+.paid-holiday-panel {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 300px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: fit-content;
+}
+
+.panel-title {
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.paid-holiday-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.paid-holiday-btn {
+  padding: 12px 16px;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  background: white;
+  color: #667eea;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.paid-holiday-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.paid-holiday-btn.active {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.paid-holiday-status {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.status-message {
+  font-size: 0.9rem;
+  color: #333;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.paid-holiday-list {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.paid-holiday-list h4 {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  color: #333;
+  text-align: center;
+}
+
+.holiday-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.holiday-date {
+  padding: 8px 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #667eea;
+  font-weight: 500;
+  text-align: center;
+}
+
+.no-holidays {
+  padding: 15px;
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
 /* Responsive design */
+@media (max-width: 768px) {
+  .calendar-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .paid-holiday-panel {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
 @media (max-width: 480px) {
   .calendar-container {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .calendar-main {
     padding: 20px;
     margin: 10px;
   }
@@ -321,6 +471,19 @@
   .manager-indicator {
     width: 6px;
     height: 6px;
+  }
+  
+  .paid-holiday-panel {
+    padding: 20px;
+  }
+  
+  .panel-title {
+    font-size: 1.1rem;
+  }
+  
+  .paid-holiday-btn {
+    padding: 10px 14px;
+    font-size: 0.8rem;
   }
 } 
 

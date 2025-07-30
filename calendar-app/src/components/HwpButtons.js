@@ -58,7 +58,8 @@ const HwpButtons = ({ managers, savedData, currentDate }) => {
         month: currentDate.getMonth() + 1,
         overtimeSchedules: savedData?.overtimeSchedules || {},
         substituteHolidays: savedData?.substituteHolidays || {},
-        vacationSchedules: savedData?.vacationSchedules || {}
+        vacationSchedules: savedData?.vacationSchedules || {},
+        paidHolidays: savedData?.paidHolidays || []
       };
       
       console.log('전달할 데이터:', calendarData);
@@ -121,7 +122,8 @@ const HwpButtons = ({ managers, savedData, currentDate }) => {
         month: currentDate.getMonth() + 1,
         overtimeSchedules: savedData?.overtimeSchedules || {},
         substituteHolidays: savedData?.substituteHolidays || {},
-        vacationSchedules: savedData?.vacationSchedules || {}
+        vacationSchedules: savedData?.vacationSchedules || {},
+        paidHolidays: savedData?.paidHolidays || []
       };
       
       console.log('전달할 데이터:', calendarData);

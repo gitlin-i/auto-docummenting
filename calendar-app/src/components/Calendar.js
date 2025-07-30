@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './Calendar.css';
 
-const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
+const Calendar = ({ selectedManager, managers, onDataUpdate, savedData, onPaidHolidayModeChange }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [overtimeSchedules, setOvertimeSchedules] = useState(savedData?.overtimeSchedules || {}); // 토요일 추가근무 스케줄
   const [substituteHolidays, setSubstituteHolidays] = useState(savedData?.substituteHolidays || {}); // 대체 휴무일
   const [vacationSchedules, setVacationSchedules] = useState(savedData?.vacationSchedules || {}); // 연가 스케줄
+  const [paidHolidays, setPaidHolidays] = useState(savedData?.paidHolidays || []); // 유급휴일 (날짜 리스트)
   const [selectedLegend, setSelectedLegend] = useState('overtime'); // 선택된 범례
+  const [paidHolidayMode, setPaidHolidayMode] = useState('none'); // 'add' | 'remove' | 'none'
   const [targetDate, setTargetDate] = useState(savedData?.targetDate || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
 
   // savedData가 변경될 때 상태 업데이트
@@ -15,6 +17,7 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
       setOvertimeSchedules(savedData.overtimeSchedules || {});
       setSubstituteHolidays(savedData.substituteHolidays || {});
       setVacationSchedules(savedData.vacationSchedules || {});
+      setPaidHolidays(savedData.paidHolidays || {});
     }
   }, [savedData]);
 
@@ -25,11 +28,19 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
         overtimeSchedules,
         substituteHolidays,
         vacationSchedules,
+        paidHolidays,
         targetDate
       });
-      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules, targetDate);
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate);
     }
-  }, [overtimeSchedules, substituteHolidays, vacationSchedules, targetDate, onDataUpdate]);
+  }, [overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate, onDataUpdate]);
+
+  // 유급휴일 모드 변경 시 부모 컴포넌트에 알림
+  useEffect(() => {
+    if (onPaidHolidayModeChange) {
+      onPaidHolidayModeChange(paidHolidayMode);
+    }
+  }, [paidHolidayMode, onPaidHolidayModeChange]);
 
   const daysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -112,10 +123,14 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
       });
       return newVacations;
     });
+
+    setPaidHolidays(prev => {
+      return prev.filter(date => !date.startsWith(currentMonthKey));
+    });
     
     // 파일 저장 알림
     if (onDataUpdate) {
-      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate);
     }
   };
 
@@ -167,11 +182,17 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
       return newVacations;
     });
 
+    // 유급휴일도 클리어
+    setPaidHolidays(prev => {
+      return prev.filter(date => !date.startsWith(currentMonthKey));
+    });
+
     setCurrentDate(nextMonth);
+    updateTargetDate(nextMonth);
     
     // 파일 저장 알림
     if (onDataUpdate) {
-      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate);
     }
   };
 
@@ -224,10 +245,11 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
     });
 
     setCurrentDate(prevMonth);
+    updateTargetDate(prevMonth);
     
     // 파일 저장 알림
     if (onDataUpdate) {
-      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules);
+      onDataUpdate(overtimeSchedules, substituteHolidays, vacationSchedules, paidHolidays, targetDate);
     }
   };
 
@@ -236,12 +258,31 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
   };
 
   const handleDateClick = (day) => {
+    const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    // 유급휴일 모드일 때는 매니저 선택 없이 처리
+    if (paidHolidayMode === 'add') {
+      // 유급휴일 추가
+      setPaidHolidays(prev => {
+        if (!prev.includes(dateKey)) {
+          return [...prev, dateKey];
+        }
+        return prev;
+      });
+      return;
+    } else if (paidHolidayMode === 'remove') {
+      // 유급휴일 제거
+      setPaidHolidays(prev => {
+        return prev.filter(date => date !== dateKey);
+      });
+      return;
+    }
+    
+    // 다른 스케줄은 매니저 선택 필요
     if (!selectedManager) {
       alert('매니저를 먼저 선택해주세요.');
       return;
     }
-
-    const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
     if (selectedLegend === 'overtime' && isSaturday(day)) {
       // 토요일 추가근무 처리
@@ -326,6 +367,7 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
       const overtimeManagers = overtimeSchedules[dateKey] || [];
       const holidayManagers = substituteHolidays[dateKey] || [];
       const vacationManagers = vacationSchedules[dateKey] || [];
+      const isPaidHoliday = paidHolidays.includes(dateKey);
       
       const isSaturdayDay = isSaturday(day);
       const isWeekdayDay = isWeekday(day);
@@ -333,7 +375,7 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
       days.push(
         <div
           key={day}
-          className={`calendar-day ${isToday ? 'today' : ''} ${isSaturdayDay ? 'saturday' : ''} ${isWeekdayDay ? 'weekday' : ''}`}
+          className={`calendar-day ${isToday ? 'today' : ''} ${isSaturdayDay ? 'saturday' : ''} ${isWeekdayDay ? 'weekday' : ''} ${isPaidHoliday ? 'paid-holiday' : ''}`}
           onClick={() => handleDateClick(day)}
         >
           <span className="day-number">{day}</span>
@@ -373,6 +415,7 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
               ))}
             </div>
           )}
+
         </div>
       );
     }
@@ -381,78 +424,124 @@ const Calendar = ({ selectedManager, managers, onDataUpdate, savedData }) => {
   };
 
   return (
-    <div className="calendar-container">
-      <div className="calendar-header">
-        <button className="calendar-nav-btn" onClick={prevMonth}>
-          ‹
-        </button>
-        <h2 className="calendar-title">
-          {currentDate.getFullYear()}년 {koreanMonthNames[currentDate.getMonth()]} 출근부
-        </h2>
-        <button className="calendar-nav-btn" onClick={nextMonth}>
-          ›
-        </button>
-      </div>
-      
-      <div className="calendar-legend">
-        <div 
-          className={`legend-item ${selectedLegend === 'overtime' ? 'selected' : ''}`}
-          onClick={() => handleLegendClick('overtime')}
-        >
-          <div className="legend-indicator overtime"></div>
-          <span>토요일 근무</span>
+    <div className="calendar-layout">
+      <div className="calendar-main">
+        <div className="calendar-header">
+          <button className="calendar-nav-btn" onClick={prevMonth}>
+            ‹
+          </button>
+          <h2 className="calendar-title">
+            {currentDate.getFullYear()}년 {koreanMonthNames[currentDate.getMonth()]} 출근부
+          </h2>
+          <button className="calendar-nav-btn" onClick={nextMonth}>
+            ›
+          </button>
         </div>
-        <div 
-          className={`legend-item ${selectedLegend === 'holiday' ? 'selected' : ''}`}
-          onClick={() => handleLegendClick('holiday')}
-        >
-          <div className="legend-indicator holiday"></div>
-          <span>대체 휴무일</span>
+        
+        <div className="calendar-legend">
+          <div 
+            className={`legend-item ${selectedLegend === 'overtime' ? 'selected' : ''}`}
+            onClick={() => handleLegendClick('overtime')}
+          >
+            <div className="legend-indicator overtime"></div>
+            <span>토요일 근무</span>
+          </div>
+          <div 
+            className={`legend-item ${selectedLegend === 'holiday' ? 'selected' : ''}`}
+            onClick={() => handleLegendClick('holiday')}
+          >
+            <div className="legend-indicator holiday"></div>
+            <span>대체 휴무일</span>
+          </div>
+          <div 
+            className={`legend-item ${selectedLegend === 'vacation' ? 'selected' : ''}`}
+            onClick={() => handleLegendClick('vacation')}
+          >
+            <div className="legend-indicator vacation"></div>
+            <span>연가</span>
+          </div>
         </div>
-        <div 
-          className={`legend-item ${selectedLegend === 'vacation' ? 'selected' : ''}`}
-          onClick={() => handleLegendClick('vacation')}
-        >
-          <div className="legend-indicator vacation"></div>
-          <span>연가</span>
+        
+        <div className="calendar-grid">
+          <div className="calendar-weekdays">
+            {dayNames.map(day => (
+              <div key={day} className="weekday">{day}</div>
+            ))}
+          </div>
+          <div className="calendar-days">
+            {renderCalendar()}
+          </div>
         </div>
-      </div>
-      
-      <div className="calendar-grid">
-        <div className="calendar-weekdays">
-          {dayNames.map(day => (
-            <div key={day} className="weekday">{day}</div>
-          ))}
-        </div>
-        <div className="calendar-days">
-          {renderCalendar()}
-        </div>
-      </div>
-      
-      {selectedManager && (
-        <div className="selected-manager-info">
-          선택된 매니저: <span style={{ color: selectedManager.color, fontWeight: 'bold' }}>{selectedManager.name}</span>
-          <br />
-          선택된 범례: <span style={{ fontWeight: 'bold' }}>
-            {selectedLegend === 'overtime' && '토요일 근무'}
-            {selectedLegend === 'holiday' && '대체 휴무일'}
-            {selectedLegend === 'vacation' && '연가'}
-          </span>
-        </div>
-      )}
+        
+        {selectedManager && (
+          <div className="selected-manager-info">
+            선택된 매니저: <span style={{ color: selectedManager.color, fontWeight: 'bold' }}>{selectedManager.name}</span>
+            <br />
+            선택된 범례: <span style={{ fontWeight: 'bold' }}>
+              {selectedLegend === 'overtime' && '토요일 근무'}
+              {selectedLegend === 'holiday' && '대체 휴무일'}
+              {selectedLegend === 'vacation' && '연가'}
+            </span>
+          </div>
+        )}
 
-      {/* 편의 기능 버튼들 */}
-      <div className="calendar-utilities">
-        <button className="utility-btn clear-month-btn" onClick={clearCurrentMonth}>
-          🗑️ 현재 달 클리어
-        </button>
-        <div className="month-navigation">
-          <button className="utility-btn prev-month-btn" onClick={moveToPrevMonth}>
-            ⬅️ 4주 앞 이동
+        {/* 편의 기능 버튼들 */}
+        <div className="calendar-utilities">
+          <button className="utility-btn clear-month-btn" onClick={clearCurrentMonth}>
+            🗑️ 현재 달 클리어
           </button>
-          <button className="utility-btn next-month-btn" onClick={moveToNextMonth}>
-            ➡️ 4주 뒤 이동
+          <div className="month-navigation">
+            <button className="utility-btn prev-month-btn" onClick={moveToPrevMonth}>
+              ⬅️ 4주 앞 이동
+            </button>
+            <button className="utility-btn next-month-btn" onClick={moveToNextMonth}>
+              ➡️ 4주 뒤 이동
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 유급휴일 관리 패널 */}
+      <div className="paid-holiday-panel">
+        <h3 className="panel-title">유급휴일 관리</h3>
+        <div className="paid-holiday-buttons">
+          <button 
+            className={`paid-holiday-btn ${paidHolidayMode === 'add' ? 'active' : ''}`}
+            onClick={() => setPaidHolidayMode(paidHolidayMode === 'add' ? 'none' : 'add')}
+          >
+            ➕ 유급휴일 지정
           </button>
+          <button 
+            className={`paid-holiday-btn ${paidHolidayMode === 'remove' ? 'active' : ''}`}
+            onClick={() => setPaidHolidayMode(paidHolidayMode === 'remove' ? 'none' : 'remove')}
+          >
+            ➖ 유급휴일 취소
+          </button>
+        </div>
+        <div className="paid-holiday-status">
+          {paidHolidayMode === 'add' && (
+            <div className="status-message">달력에서 유급휴일을 지정할 날짜를 클릭하세요 (매니저 선택 불필요)</div>
+          )}
+          {paidHolidayMode === 'remove' && (
+            <div className="status-message">달력에서 유급휴일을 취소할 날짜를 클릭하세요 (매니저 선택 불필요)</div>
+          )}
+          {paidHolidayMode === 'none' && (
+            <div className="status-message">버튼을 클릭하여 유급휴일을 관리하세요 (매니저 선택 불필요)</div>
+          )}
+        </div>
+        <div className="paid-holiday-list">
+          <h4>현재 유급휴일 목록</h4>
+          {paidHolidays.length > 0 ? (
+            <div className="holiday-dates">
+              {paidHolidays.map(date => (
+                <div key={date} className="holiday-date">
+                  {date}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-holidays">설정된 유급휴일이 없습니다</div>
+          )}
         </div>
       </div>
     </div>

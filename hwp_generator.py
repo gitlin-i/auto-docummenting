@@ -618,12 +618,31 @@ class HwpGenerator:
                         vacation_days.append(date_obj.day)
         return sorted(vacation_days)
 
+    def get_paid_holiday_days(self, year, month, data):
+        """해당 월의 유급휴일 날짜 리스트 반환 (정수 day 리스트)"""
+        paid_holidays = data.get("paidHolidays", [])
+        paid_holiday_days = []
+        for date_str in paid_holidays:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            if date_obj.year == year and date_obj.month == month:
+                paid_holiday_days.append(date_obj.day)
+        return sorted(paid_holiday_days)
+
     def write_vacation_text_in_right_cell(self):
         """현재 셀 기준 우측 한 칸에 '연가' 입력, 그리고 다시 좌측 한 칸으로 돌아옴"""
         self.move_cell("right", 1)
         self.hwp.HAction.Run("TableCellInput")
         self.hwp.HAction.GetDefault("InsertText", self.hwp.HParameterSet.HInsertText.HSet)
         self.hwp.HParameterSet.HInsertText.Text = "연가"
+        self.hwp.HAction.Execute("InsertText", self.hwp.HParameterSet.HInsertText.HSet)
+        self.move_cell("left", 1)
+
+    def write_paid_holiday_text_in_right_cell(self):
+        """현재 셀 기준 우측 한 칸에 '유급휴일' 입력, 그리고 다시 좌측 한 칸으로 돌아옴"""
+        self.move_cell("right", 1)
+        self.hwp.HAction.Run("TableCellInput")
+        self.hwp.HAction.GetDefault("InsertText", self.hwp.HParameterSet.HInsertText.HSet)
+        self.hwp.HParameterSet.HInsertText.Text = "유급휴일"
         self.hwp.HAction.Execute("InsertText", self.hwp.HParameterSet.HInsertText.HSet)
         self.move_cell("left", 1)
 
@@ -654,6 +673,33 @@ class HwpGenerator:
                     self.write_vacation_text_in_right_cell()
             self.hwp.HAction.Run("MoveTop")
 
+    def add_paid_holiday_lines(self, year, month, last_day, paid_holiday_days):
+        """%일1, %일2 헤더 기준으로 각 열을 순회하며 셀 값을 직접 읽어 유급휴일 입력"""
+        header_candidates = ["%일1", "%일2"]
+        for header in header_candidates:
+            self.hwp.HAction.Run("MoveTop")
+            if not self.find_and_select_cell(header):
+                continue
+            if header == "%일1":
+                max_rows = 16
+            else:
+                max_rows = last_day - 16
+            for _ in range(max_rows):
+                self.move_cell("down", 1)
+                self.select_cell()
+                self.hwp.HAction.Run("TableCellInput")
+                self.hwp.InitScan(0, 2)
+                text_tuple = self.hwp.GetText()
+                cell_value = None
+                if isinstance(text_tuple, tuple) and len(text_tuple) > 1:
+                    try:
+                        cell_value = int(text_tuple[1])
+                    except Exception:
+                        continue
+                if cell_value in paid_holiday_days:
+                    self.write_paid_holiday_text_in_right_cell()
+            self.hwp.HAction.Run("MoveTop")
+
     def generate_hwp_for_manager(self, manager_name, target_date, data):
         """특정 매니저의 HWP 파일 생성"""
         try:
@@ -675,6 +721,10 @@ class HwpGenerator:
             # 매니저별 연가 날짜 계산 및 입력
             vacation_days = self.get_manager_vacation_days(manager_name, year, month, data)
             self.add_vacation_lines(year, month, last_day, vacation_days)
+            
+            # 유급휴일 날짜 계산 및 입력 (매니저 공통)
+            paid_holiday_days = self.get_paid_holiday_days(year, month, data)
+            self.add_paid_holiday_lines(year, month, last_day, paid_holiday_days)
             
             # 기존 빗금 로직
             non_working_days = self.get_manager_non_working_days(manager_name, year, month, data)
