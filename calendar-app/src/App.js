@@ -3,6 +3,7 @@ import './App.css';
 import Calendar from './components/Calendar';
 import ManagerList from './components/ManagerList';
 import FileStorage from './utils/fileStorage';
+import EasterEgg from './components/EasterEgg';
 
 function App() {
   const [selectedManager, setSelectedManager] = useState(null);
@@ -158,6 +159,7 @@ function App() {
           />
         </div>
       </main>
+      <EasterEgg />
     </div>
   );
 }

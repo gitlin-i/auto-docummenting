@@ -1,0 +1,53 @@
+.easter-egg {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  cursor: pointer;
+  user-select: none;
+}
+
+.easter-egg-emoji {
+  font-size: 24px;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.easter-egg:hover .easter-egg-emoji {
+  transform: scale(1.1);
+}
+
+.easter-egg-tooltip {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  white-space: nowrap;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.easter-egg-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  border: 5px solid transparent;
+  border-top-color: #333;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
